@@ -1,6 +1,4 @@
-<?php
-
-defined('SYSPATH') OR die('No direct access allowed.');
+<?php defined('SYSPATH') OR die('No direct access allowed.');
 
 /**
  * WordPress authorization library for Kohana
@@ -23,7 +21,7 @@ class Wordpress_Auth {
      */
     public static function instance()
     {
-        if (!isset(Wordpress_Auth::$_instance))
+        if ( ! isset(Wordpress_Auth::$_instance))
         {
             $config = Kohana::$config->load('wordpress');
 
@@ -54,7 +52,7 @@ class Wordpress_Auth {
         $this->auth_cookie = 'wordpress_' . md5($this->options['siteurl']);
         $this->secure_auth_cookie = 'wordpress_sec_' . md5($this->options['siteurl']);
         $this->logged_in_cookie = 'wordpress_logged_in_' . md5($this->options['siteurl']);
-        $this->cookie_domain = '.' . preg_replace('|https?://([^/]+)|i', '$1', $this->options['siteurl']);
+        $this->cookie_domain = '.'.preg_replace('|https?://([^/]+)|i', '$1', $this->options['siteurl']);
     }
 
     /**
@@ -69,7 +67,7 @@ class Wordpress_Auth {
     {
         $cookie_args = $this->wp_parse_auth_cookie($cookie, $scheme);
 
-        if (!$cookie_elements = $this->wp_parse_auth_cookie($cookie, $scheme))
+        if ( ! $cookie_elements = $this->wp_parse_auth_cookie($cookie, $scheme))
         {
             return FALSE;
         }
@@ -93,7 +91,7 @@ class Wordpress_Auth {
 
         $user = $this->model->get_user($username, 'login');
 
-        if (!$user)
+        if ( ! $user)
         {
             return FALSE;
         }
@@ -140,7 +138,7 @@ class Wordpress_Auth {
         $user = $this->model->get_user($username, 'login');
 
         // Check password
-        require_once MODPATH . 'wordpress/classes/vendor/phpass.php';
+        require_once MODPATH . 'kohana-wordpress/classes/vendor/phpass.php';
         $wp_hasher = new PasswordHash(8, TRUE);
 
         if ($wp_hasher->CheckPassword($password, $user['user_pass']))
@@ -192,7 +190,7 @@ class Wordpress_Auth {
     {
         $user_email = UTF8::trim($user_email);
 
-        if (!$this->model->is_mail_exist($user_email))
+        if ( ! $this->model->is_mail_exist($user_email))
         {
             $data = array(
                 'user_pass' => $this->wp_generate_password(12, FALSE),

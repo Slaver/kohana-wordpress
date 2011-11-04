@@ -1,27 +1,17 @@
 <?php defined('SYSPATH') OR die('No direct access allowed.');
 
-defined('SYSPATH') or die('No direct script access.');
-
 class Controller_Auth extends Controller {
 
     public function before()
     {
         parent::before();
 
-        if (array_key_exists('wordpress', Kohana::modules()))
-        {
-            // Авторизация
-            $this->auth = Wordpress_Auth::instance()->get_user('', 'logged_in');
-        }
-        else
-        {
-            throw new Kohana_Exception('Module wordpress is not loaded');
-        }
+        $this->auth = Wordpress_Auth::instance()->get_user('', 'logged_in');
     }
 
     public function action_index()
     {
-        if (!$this->auth)
+        if ( ! $this->auth)
         {
             echo '<form action="/auth/login" method="post">
                 <input type="text" name="log" value="" />
@@ -39,7 +29,7 @@ class Controller_Auth extends Controller {
 
     public function action_login()
     {
-        if (!empty($_POST))
+        if ( ! empty($_POST))
         {
             $user = Wordpress_Auth::instance()->login($_POST['log'], $_POST['pwd'], TRUE);
 
@@ -73,9 +63,9 @@ class Controller_Auth extends Controller {
             <input type="submit" />
         </form><a href="https://loginza.ru/api/widget?token_url=http://new.ultra-music.dev/auth/register" class="loginza">Войти через OpenID</a>';
 
-        if (!empty($_POST))
+        if ( ! empty($_POST))
         {
-            if (!empty($_POST['user_email']))
+            if ( ! empty($_POST['user_email']))
             {
                 if (Wordpress_Auth::instance()->register($_POST['user_email']))
                 {

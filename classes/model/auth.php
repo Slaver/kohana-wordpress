@@ -244,7 +244,7 @@ class Model_Auth extends Model_Wordpress {
      */
     private function wp_hash_password($password)
     {
-        require_once MODPATH.'wordpress/classes/vendor/phpass.php';
+        require_once MODPATH.'kohana-wordpress/classes/vendor/phpass.php';
         $wp_hasher = new PasswordHash(8, TRUE);
 
         return $wp_hasher->HashPassword($password);
