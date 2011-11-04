@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-Route::set('auth', 'auth(/<action>(/<id>))')
+Route::set('wordpress/auth', 'auth(/<action>(/<id>))')
     ->defaults(array(
         'controller' => 'auth',
         'action'     => 'index',

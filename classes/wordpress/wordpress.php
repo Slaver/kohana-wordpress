@@ -1,4 +1,6 @@
-<?php defined('SYSPATH') OR die('No direct access allowed.');
+<?php
+
+defined('SYSPATH') OR die('No direct access allowed.');
 
 /**
  * WordPress posts' actions library for Kohana
@@ -11,118 +13,117 @@
  */
 class Wordpress_Wordpress {
 
-	// Instances
-	protected static $_instance;
-
-	/**
-	 * Singleton pattern
-	 *
-	 * @return Wordpress
-	 */
-	public static function instance()
-	{
-		if ( ! isset(Wordpress::$_instance))
-		{
-			// Create a new session instance
-			Wordpress::$_instance = new self();
-		}
-
-		return Wordpress::$_instance;
-	}
-
-	protected $model    = FALSE;
-    protected $page     = 1;
-	protected $year     = FALSE;
-	protected $month    = FALSE;
-	protected $day      = FALSE;
-	protected $title    = FALSE;
-	protected $category = array();
-	protected $search   = FALSE;
-
-    public $limit   = 10;
-    public $exclude = array();
-
-	/**
-	 * Constructor
-	 *
-	 * @return Wordpress
-	 */
-	public function __construct()
-	{
-		$this->model    = new Model_Wordpress();
-
-		$this->year     = Request::initial()->param('year');
-		$this->month    = Request::initial()->param('month');
-		$this->day      = Request::initial()->param('day');
-		$this->title    = Request::initial()->param('title');
-
-        $this->category = Request::initial()->param('category');
-        $this->search   = Request::initial()->param('q');
-        $this->page     = Request::initial()->param('page');
-	}
+    // Instances
+    protected static $_instance;
 
     /**
-	 * Return list of posts
-	 *
-	 * @return array
-	 */    
-	public function get_posts()
-	{
-        $offset = ( ! empty($this->page)) ? ($this->page * $this->limit - $this->limit) : 0;
+     * Singleton pattern
+     *
+     * @return Wordpress
+     */
+    public static function instance()
+    {
+        if (!isset(Wordpress::$_instance))
+        {
+            // Create a new session instance
+            Wordpress::$_instance = new self();
+        }
 
-		// Single post
-		if ($this->limit === 1 OR $this->title)
-		{
-			$data = $this->model->get_post($this->title);
-		}
-		// Posts archive by date
-		elseif ( ! empty($this->year))
-		{
-			$data = $this->model->get_posts(array(
+        return Wordpress::$_instance;
+    }
+
+    protected $model = FALSE;
+    protected $page = 1;
+    protected $year = FALSE;
+    protected $month = FALSE;
+    protected $day = FALSE;
+    protected $title = FALSE;
+    protected $category = array();
+    protected $search = FALSE;
+    public $limit = 10;
+    public $exclude = array();
+
+    /**
+     * Constructor
+     *
+     * @return Wordpress
+     */
+    public function __construct()
+    {
+        $this->model = new Model_Wordpress();
+
+        $this->year = Request::initial()->param('year');
+        $this->month = Request::initial()->param('month');
+        $this->day = Request::initial()->param('day');
+        $this->title = Request::initial()->param('title');
+
+        $this->category = Request::initial()->param('category');
+        $this->search = Request::initial()->param('q');
+        $this->page = Request::initial()->param('page');
+    }
+
+    /**
+     * Return list of posts
+     *
+     * @return array
+     */
+    public function get_posts()
+    {
+        $offset = (!empty($this->page)) ? ($this->page * $this->limit - $this->limit) : 0;
+
+        // Single post
+        if ($this->limit === 1 OR $this->title)
+        {
+            $data = $this->model->get_post($this->title);
+        }
+        // Posts archive by date
+        elseif (!empty($this->year))
+        {
+            $data = $this->model->get_posts(array(
                 'numberposts' => $this->limit,
-                'offset'      => $offset,
-                'date'        => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
-            ));
-		}
-		// List of posts
-		else
-		{
-			$data = $this->model->get_posts(array(
+                'offset' => $offset,
+                'date' => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
+                    ));
+        }
+        // List of posts
+        else
+        {
+            $data = $this->model->get_posts(array(
                 'numberposts' => $this->limit,
-                'offset'      => $offset,
-                'exclude'     => $this->exclude,
-                'search'      => $this->search,
-            ));
-		}
+                'offset' => $offset,
+                'exclude' => $this->exclude,
+                'search' => $this->search,
+                    ));
+        }
 
         $permalink_structure = $this->model->get_permalink_structure();
 
-		if ( ! empty($data['posts']))
-		{
-			foreach ($data['posts'] as $id => $post)
-			{
+        if (!empty($data['posts']))
+        {
+            foreach ($data['posts'] as $id => $post)
+            {
                 // Link
-				$data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
+                $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
 
                 // Text of post
                 $content = $post['post_content'];
-				if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
-				{
-					$data['posts'][$id]['content'] = explode($matches[0], $content, 2);
-				}
-				else
-				{
-					$data['posts'][$id]['content'] = array($content);
-				}
-			}
+                if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
+                {
+                    $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
+                }
+                else
+                {
+                    $data['posts'][$id]['content'] = array($content);
+                }
+            }
             return $data;
-		}
-	}
+        }
+    }
 
     /**
      * Return one static page
-	 *
-	 * @return array
+     *
+     * @return array
      */
     public function get_static()
     {
@@ -130,30 +131,30 @@ class Wordpress_Wordpress {
     }
 
     /**
-	 * Get random posts
-	 *
-	 * @return array
-	 */
-    public function get_random_posts($limit  = '10', $category = 'sidebar', $excluded_posts = array())
+     * Get random posts
+     *
+     * @return array
+     */
+    public function get_random_posts($limit = '10', $category = 'sidebar', $excluded_posts = array())
     {
         $data = $this->model->get_posts(0, 50, $category, array(), FALSE, array(), array('thumbs'), $excluded_posts, TRUE);
         $data['permalink_structure'] = $this->model->get_permalink_structure();
         $random = array_rand($data['posts'], 1);
 
-        if ( ! empty($data['posts']))
-		{
-			$post = $data['posts'][$random];
-			$url  = $this->get_link($data['permalink_structure'], $post);
+        if (!empty($data['posts']))
+        {
+            $post = $data['posts'][$random];
+            $url = $this->get_link($data['permalink_structure'], $post);
             $result[] = array(
-                'id'    => $post['ID'],
-                'date'  => strtotime($post['post_date']),
+                'id' => $post['ID'],
+                'date' => strtotime($post['post_date']),
                 'title' => $post['post_title'],
-                'link'  => $url,
+                'link' => $url,
                 'thumb' => $post['thumb'],
-                'meta'  => $post['meta'],
+                'meta' => $post['meta'],
             );
-			return array('posts' => $result);
-		}
+            return array('posts' => $result);
+        }
     }
 
     /**
@@ -165,53 +166,53 @@ class Wordpress_Wordpress {
      */
     public function get_related_posts($limit = 5, $tags = array(), $excluded_posts = array())
     {
-        if ( ! empty($tags))
+        if (!empty($tags))
         {
             $data = $this->model->get_posts(0, $limit, $tags, array(), FALSE, FALSE, array('thumbs'), $excluded_posts);
 
             foreach ($data['posts'] as $post)
-			{
-				$url = $this->get_link($data['permalink_structure'], $post);
+            {
+                $url = $this->get_link($data['permalink_structure'], $post);
 
                 $result[] = array(
-					'id'			=> $post['ID'],
-					'date'			=> strtotime($post['post_date']),
-					'title'			=> $post['post_title'],
-					'link'			=> $url,
-					'content'		=> $post['post_content'],
-					'thumb'         => $post['thumb'],
-				);
-			}
+                    'id' => $post['ID'],
+                    'date' => strtotime($post['post_date']),
+                    'title' => $post['post_title'],
+                    'link' => $url,
+                    'content' => $post['post_content'],
+                    'thumb' => $post['thumb'],
+                );
+            }
 
-			return array(
-				'posts' => $result,
-				'pages' => array(
-					'limit'		=> $limit,
-					'rows'		=> $data['rows'],
-					'current'	=> $this->page,
-				),
-			);
+            return array(
+                'posts' => $result,
+                'pages' => array(
+                    'limit' => $limit,
+                    'rows' => $data['rows'],
+                    'current' => $this->page,
+                ),
+            );
         }
     }
 
     /**
-	 * Список постов по месяцам
-	 *
-	 * @return array
-	 */
-	public function get_archives()
-	{
-		return $this->model->get_archives();
-	}
+     * Список постов по месяцам
+     *
+     * @return array
+     */
+    public function get_archives()
+    {
+        return $this->model->get_archives();
+    }
 
-	/**
-	 * Return link of post by permalink structure
-	 */
-	private function get_link($permalink_structure, $post_data)
+    /**
+     * Return link of post by permalink structure
+     */
+    private function get_link($permalink_structure, $post_data)
     {
         $str = $permalink_structure == '' ? '/%year%/%monthnum%/%day%/%postname%' : $permalink_structure;
 
-        $date= strtotime($post_data['post_date']);
+        $date = strtotime($post_data['post_date']);
         $url = $str;
         $url = str_replace("%year%", date('Y', $date), $url);
         $url = str_replace("%monthnum%", date('m', $date), $url);
@@ -224,7 +225,7 @@ class Wordpress_Wordpress {
         $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
 
         return $url;
-	}
+    }
 
     /**
      * List of posts' comments
@@ -278,20 +279,20 @@ class Wordpress_Wordpress {
      */
     public function add_comment($message, $user, $post_id, $status = 1)
     {
-		return $this->model->add_comment($message, $user, $post_id, $status);
+        return $this->model->add_comment($message, $user, $post_id, $status);
     }
 
-	/**
-	 * Get popular posts
+    /**
+     * Get popular posts
      *
      * @param  string $limit
      * @param  array  $time_period
      * @return array
-	 */
-	public function get_popular_posts($limit = 40, $time_period = array())
-	{
-		return $this->model->get_popular_posts($limit, $time_period);
-	}
+     */
+    public function get_popular_posts($limit = 40, $time_period = array())
+    {
+        return $this->model->get_popular_posts($limit, $time_period);
+    }
 
     /**
      * Get last comments
@@ -302,30 +303,31 @@ class Wordpress_Wordpress {
     public function get_last_comments($number = 5)
     {
         $comments = $this->model->get_comments(FALSE, $number);
-        if ( ! empty($comments))
-		{
+        if (!empty($comments))
+        {
             $str = $this->model->get_permalink_structure();
-            foreach($comments as $k => $comment)
-			{
-				$data[$k] = $comment;
-				$data[$k]['link'] = $this->get_link($str, $comment) . '#comment_' . $comment['comment_ID'];
-			}
-			return $data;
-		}
+            foreach ($comments as $k => $comment)
+            {
+                $data[$k] = $comment;
+                $data[$k]['link'] = $this->get_link($str, $comment) . '#comment_' . $comment['comment_ID'];
+            }
+            return $data;
+        }
     }
 
     /**
-	 * List of options
-	 *
-	 * @return array
-	 */
-	public function get_options()
-	{
-		$options = $this->model->get_options();
+     * List of options
+     *
+     * @return array
+     */
+    public function get_options()
+    {
+        $options = $this->model->get_options();
         foreach ($options as $option)
         {
             $result[$option['option_name']] = $option['option_value'];
         }
         return $result;
-	}
+    }
+
 }

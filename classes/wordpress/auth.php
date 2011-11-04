@@ -1,4 +1,6 @@
-<?php defined('SYSPATH') OR die('No direct access allowed.');
+<?php
+
+defined('SYSPATH') OR die('No direct access allowed.');
 
 /**
  * WordPress authorization library for Kohana
@@ -21,7 +23,7 @@ class Wordpress_Auth {
      */
     public static function instance()
     {
-        if ( ! isset(Wordpress_Auth::$_instance))
+        if (!isset(Wordpress_Auth::$_instance))
         {
             $config = Kohana::$config->load('wordpress');
 
@@ -52,7 +54,7 @@ class Wordpress_Auth {
         $this->auth_cookie = 'wordpress_' . md5($this->options['siteurl']);
         $this->secure_auth_cookie = 'wordpress_sec_' . md5($this->options['siteurl']);
         $this->logged_in_cookie = 'wordpress_logged_in_' . md5($this->options['siteurl']);
-        $this->cookie_domain = '.'.preg_replace('|https?://([^/]+)|i', '$1', $this->options['siteurl']);
+        $this->cookie_domain = '.' . preg_replace('|https?://([^/]+)|i', '$1', $this->options['siteurl']);
     }
 
     /**
@@ -67,7 +69,7 @@ class Wordpress_Auth {
     {
         $cookie_args = $this->wp_parse_auth_cookie($cookie, $scheme);
 
-        if ( ! $cookie_elements = $this->wp_parse_auth_cookie($cookie, $scheme))
+        if (!$cookie_elements = $this->wp_parse_auth_cookie($cookie, $scheme))
         {
             return FALSE;
         }
@@ -91,14 +93,14 @@ class Wordpress_Auth {
 
         $user = $this->model->get_user($username, 'login');
 
-        if ( ! $user)
+        if (!$user)
         {
             return FALSE;
         }
 
         $pass_frag = substr($user['user_pass'], 8, 4);
 
-        $key  = $this->wp_hash($username . $pass_frag . '|' . $expiration, $scheme);
+        $key = $this->wp_hash($username . $pass_frag . '|' . $expiration, $scheme);
         $hash = hash_hmac('md5', $username . '|' . $expiration, $key);
 
         if ($hmac != $hash)
@@ -138,7 +140,7 @@ class Wordpress_Auth {
         $user = $this->model->get_user($username, 'login');
 
         // Check password
-        require_once MODPATH.'wordpress/classes/vendor/phpass.php';
+        require_once MODPATH . 'wordpress/classes/vendor/phpass.php';
         $wp_hasher = new PasswordHash(8, TRUE);
 
         if ($wp_hasher->CheckPassword($password, $user['user_pass']))
@@ -171,12 +173,12 @@ class Wordpress_Auth {
         $auth_cookie = $this->wp_generate_auth_cookie($user['ID'], $expiration, $scheme);
         $logged_in_cookie = $this->wp_generate_auth_cookie($user['ID'], $expiration, 'logged_in');
 
-        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path.'wp-content/plugins', $this->cookie_domain, $secure, TRUE);
-        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path.'wp-admin', $this->cookie_domain, $secure, TRUE);
+        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path . 'wp-content/plugins', $this->cookie_domain, $secure, TRUE);
+        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path . 'wp-admin', $this->cookie_domain, $secure, TRUE);
         setcookie($this->logged_in_cookie, $logged_in_cookie, $expire, Cookie::$path, $this->cookie_domain, $secure, TRUE);
 
-        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path.'forum/bb-admin', $this->cookie_domain, $secure, TRUE);
-        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path.'forum/bb-plugins', $this->cookie_domain, $secure, TRUE);
+        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path . 'forum/bb-admin', $this->cookie_domain, $secure, TRUE);
+        setcookie($auth_cookie_name, $auth_cookie, $expire, Cookie::$path . 'forum/bb-plugins', $this->cookie_domain, $secure, TRUE);
 
         return $user;
     }
@@ -190,11 +192,11 @@ class Wordpress_Auth {
     {
         $user_email = UTF8::trim($user_email);
 
-        if ( ! $this->model->is_mail_exist($user_email))
+        if (!$this->model->is_mail_exist($user_email))
         {
             $data = array(
                 'user_pass' => $this->wp_generate_password(12, FALSE),
-                'user_email'=> $user_email,
+                'user_email' => $user_email,
             );
 
             if ($id = $this->model->insert_user($data))
@@ -215,13 +217,13 @@ class Wordpress_Auth {
     {
         $expire = time() - 31536000;
 
-        setcookie($this->secure_auth_cookie, ' ', $expire, Cookie::$path.'wp-admin', $this->cookie_domain);
-        setcookie($this->secure_auth_cookie, ' ', $expire, Cookie::$path.'wp-content/plugins', $this->cookie_domain);
-        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path.'wp-admin', $this->cookie_domain);
-        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path.'wp-content/plugins', $this->cookie_domain);
+        setcookie($this->secure_auth_cookie, ' ', $expire, Cookie::$path . 'wp-admin', $this->cookie_domain);
+        setcookie($this->secure_auth_cookie, ' ', $expire, Cookie::$path . 'wp-content/plugins', $this->cookie_domain);
+        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path . 'wp-admin', $this->cookie_domain);
+        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path . 'wp-content/plugins', $this->cookie_domain);
         setcookie($this->logged_in_cookie, ' ', $expire, Cookie::$path, $this->cookie_domain);
-        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path.'forum/bb-admin', $this->cookie_domain);
-        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path.'forum/bb-plugins', $this->cookie_domain);
+        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path . 'forum/bb-admin', $this->cookie_domain);
+        setcookie($this->auth_cookie, ' ', $expire, Cookie::$path . 'forum/bb-plugins', $this->cookie_domain);
     }
 
     /**
@@ -279,7 +281,8 @@ class Wordpress_Auth {
         if (defined('SECRET_KEY') && ('' != SECRET_KEY) && ($wp_default_secret_key != SECRET_KEY))
             $secret_key = SECRET_KEY;
 
-        if ('auth' == $scheme) {
+        if ('auth' == $scheme)
+        {
             if (defined('AUTH_KEY') && ('' != AUTH_KEY) && ($wp_default_secret_key != AUTH_KEY))
                 $secret_key = AUTH_KEY;
 
@@ -289,7 +292,8 @@ class Wordpress_Auth {
                 $salt = SECRET_SALT;
             else
                 $salt = $this->options['auth_salt'];
-        } elseif ('logged_in' == $scheme) {
+        } elseif ('logged_in' == $scheme)
+        {
             if (defined('LOGGED_IN_KEY') && ('' != LOGGED_IN_KEY) && ($wp_default_secret_key != LOGGED_IN_KEY))
                 $secret_key = LOGGED_IN_KEY;
 
@@ -297,7 +301,8 @@ class Wordpress_Auth {
                 $salt = LOGGED_IN_SALT;
             else
                 $salt = $this->options['logged_in_salt'];
-        } elseif ('nonce' == $scheme) {
+        } elseif ('nonce' == $scheme)
+        {
             if (defined('NONCE_KEY') && ('' != NONCE_KEY) && ($wp_default_secret_key != NONCE_KEY))
                 $secret_key = NONCE_KEY;
 
@@ -305,7 +310,8 @@ class Wordpress_Auth {
                 $salt = NONCE_SALT;
             else
                 $salt = $this->options['nonce_salt'];
-        } else {
+        } else
+        {
             // ensure each auth scheme has its own unique salt
             $salt = hash_hmac('md5', $scheme, $secret_key);
         }
@@ -322,8 +328,10 @@ class Wordpress_Auth {
      */
     private function wp_parse_auth_cookie($cookie = '', $scheme = '')
     {
-        if (empty($cookie)) {
-            switch ($scheme){
+        if (empty($cookie))
+        {
+            switch ($scheme)
+            {
                 case 'auth':
                     $cookie_name = $this->auth_cookie;
                     break;
@@ -334,10 +342,13 @@ class Wordpress_Auth {
                     $cookie_name = $this->logged_in_cookie;
                     break;
                 default:
-                    if (Request::factory()->secure()) {
+                    if (Request::factory()->secure())
+                    {
                         $cookie_name = $this->secure_auth_cookie;
                         $scheme = 'secure_auth';
-                    } else {
+                    }
+                    else
+                    {
                         $cookie_name = $this->auth_cookie;
                         $scheme = 'auth';
                     }
@@ -389,7 +400,7 @@ class Wordpress_Auth {
      * @param bool $extra_special_chars Whether to include other special characters. Used when
      *   generating secret keys and salts. Default false.
      * @return string The random password
-     **/
+     * */
     private function wp_generate_password($length = 12, $special_chars = TRUE, $extra_special_chars = FALSE)
     {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -399,10 +410,12 @@ class Wordpress_Auth {
             $chars .= '-_ []{}<>~`+=,.;:/?|';
 
         $password = '';
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $length; $i++)
+        {
             $password .= substr($chars, rand(0, strlen($chars) - 1), 1);
         }
 
         return $password;
     }
+
 }

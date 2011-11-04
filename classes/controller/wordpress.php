@@ -1,4 +1,6 @@
-<?php defined('SYSPATH') or die('No direct script access.');
+<?php defined('SYSPATH') OR die('No direct access allowed.');
+
+defined('SYSPATH') or die('No direct script access.');
 
 class Controller_Wordpress extends Controller {
 
@@ -50,4 +52,5 @@ class Controller_Wordpress extends Controller {
     {
         parent::after();
     }
+
 }
