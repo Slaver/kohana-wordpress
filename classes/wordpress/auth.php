@@ -200,6 +200,8 @@ class Wordpress_Auth {
             if ($id = $this->model->insert_user($data))
             {
                 $auth = $this->model->get_user($id);
+
+                // @TODO Send mail about registration
                 return $this->complete_login($auth, TRUE);
             }
         }

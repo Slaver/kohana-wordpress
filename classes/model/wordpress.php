@@ -11,6 +11,15 @@
  */
 class Model_Wordpress extends Model_Database {
 
+    protected $config = array();
+
+    public function __construct($config)
+	{
+        parent::__construct();
+
+        $this->config = $config;
+	}
+
 	/**
 	 * Takes a post ID or post name (slug) and returns the database record for
      * that post, includes meta- and taxonomy information for that post.
