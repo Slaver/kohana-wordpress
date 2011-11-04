@@ -13,7 +13,7 @@ class Model_Wordpress extends Model_Database {
 
     protected $config = array();
 
-    public function __construct($config)
+    public function __construct($config = array())
 	{
         parent::__construct();
 
