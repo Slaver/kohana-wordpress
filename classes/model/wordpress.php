@@ -107,6 +107,7 @@ class Model_Wordpress extends Model_Database {
          * 'search' - search request (from GET-query)
          * 'select' - array of custom information. If you do not need it,
          *    you can set it empty for reduce the number of database requests
+         * 'sticky' - number of sticky posts
          */
         $default = array(
             'numberposts'     => 10,
@@ -125,6 +126,7 @@ class Model_Wordpress extends Model_Database {
             'date'            => NULL,
             'search'          => NULL,
             'select'          => array('taxonomy', 'meta', 'thumbs'),
+            'sticky'          => 0,
         );
         extract(Arr::overwrite($default, $args));
 
@@ -133,8 +135,21 @@ class Model_Wordpress extends Model_Database {
             ->join('users', 'LEFT')
                 ->on('posts.post_author', '=', 'users.ID')
             ->and_where('post_type', '=', $post_type)
-            ->and_where('post_status', '=', 'publish')
-            ->order_by('posts.'.$orderby, $order);
+            ->and_where('post_status', '=', 'publish');
+
+        if ( ! empty($sticky))
+        {
+            $sticky = (int)$sticky;
+            $options = $this->get_options();
+            $sticky_array = unserialize($options['sticky_posts']);
+            krsort($sticky_array);
+
+            $sticky_posts = array_slice($sticky_array, 0, $sticky);
+            $sticky_order = DB::expr('FIELD('.Database::instance()->table_prefix().'posts.ID, '.implode(',', $sticky_posts).')');
+            $query
+                ->and_where('posts.ID', 'IN', $sticky_posts)
+                ->order_by($sticky_order);
+        }
 
         if ( ! empty($include))
         {
@@ -185,15 +200,15 @@ class Model_Wordpress extends Model_Database {
 		{
 			if ( ! empty($date['y']))
 			{
-                $query->and_where(DB::expr('YEAR(wp_posts.post_date)'), '=', $date['y']);
+                $query->and_where(DB::expr('YEAR('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['y']);
 
 				if ( ! empty($date['m']))
 				{
-                    $query->and_where(DB::expr('MONTH(wp_posts.post_date)'), '=', $date['m']);
+                    $query->and_where(DB::expr('MONTH('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['m']);
 				}
 				if ( ! empty($date['d']))
 				{
-                    $query->and_where(DB::expr('DAYOFMONTH(wp_posts.post_date)'), '=', $date['d']);
+                    $query->and_where(DB::expr('DAYOFMONTH('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['d']);
 				}
 			}
 		}
@@ -229,6 +244,7 @@ class Model_Wordpress extends Model_Database {
 		}
 
         $posts = $query
+            ->order_by('posts.'.$orderby, $order)
             ->limit($numberposts)
             ->offset($offset)
             ->execute()->as_array('ID');

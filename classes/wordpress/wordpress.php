@@ -1,6 +1,4 @@
-<?php
-
-defined('SYSPATH') OR die('No direct access allowed.');
+<?php defined('SYSPATH') OR die('No direct access allowed.');
 
 /**
  * WordPress posts' actions library for Kohana
@@ -23,7 +21,7 @@ class Wordpress_Wordpress {
      */
     public static function instance()
     {
-        if (!isset(Wordpress::$_instance))
+        if ( ! isset(Wordpress::$_instance))
         {
             // Create a new session instance
             Wordpress::$_instance = new self();
@@ -37,9 +35,11 @@ class Wordpress_Wordpress {
     protected $year = FALSE;
     protected $month = FALSE;
     protected $day = FALSE;
-    protected $title = FALSE;
     protected $category = array();
     protected $search = FALSE;
+
+    // Title or ID of single post
+    public $title = FALSE;
     public $limit = 10;
     public $exclude = array();
 
@@ -69,7 +69,7 @@ class Wordpress_Wordpress {
      */
     public function get_posts()
     {
-        $offset = (!empty($this->page)) ? ($this->page * $this->limit - $this->limit) : 0;
+        $offset = ( ! empty($this->page)) ? ($this->page * $this->limit - $this->limit) : 0;
 
         // Single post
         if ($this->limit === 1 OR $this->title)
@@ -77,28 +77,29 @@ class Wordpress_Wordpress {
             $data = $this->model->get_post($this->title);
         }
         // Posts archive by date
-        elseif (!empty($this->year))
+        elseif ( ! empty($this->year))
         {
             $data = $this->model->get_posts(array(
                 'numberposts' => $this->limit,
                 'offset' => $offset,
                 'date' => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
-                    ));
+            ));
         }
         // List of posts
         else
         {
             $data = $this->model->get_posts(array(
+                'category' => $this->category,
                 'numberposts' => $this->limit,
                 'offset' => $offset,
                 'exclude' => $this->exclude,
                 'search' => $this->search,
-                    ));
+            ));
         }
 
         $permalink_structure = $this->model->get_permalink_structure();
 
-        if (!empty($data['posts']))
+        if ( ! empty($data['posts']))
         {
             foreach ($data['posts'] as $id => $post)
             {
@@ -121,6 +122,16 @@ class Wordpress_Wordpress {
     }
 
     /**
+     * Get sticky posts
+     *
+     * @return array
+     */
+    public function get_sticky($number = 5)
+    {
+        return $this->model->get_posts(array('sticky' => $number));
+    }
+
+    /**
      * Return one static page
      *
      * @return array
@@ -128,6 +139,33 @@ class Wordpress_Wordpress {
     public function get_static()
     {
         return $this->model->get_post($this->title, 'page');
+    }
+
+    /**
+     * Get sticky posts
+     *
+     * @return array
+     */
+    public function get_sticky_posts($limit = 10, $excluded_posts = array())
+    {
+        $data = $this->model->get_posts(0, 50, $category, array(), FALSE, array(), array('thumbs'), $excluded_posts, TRUE);
+        $data['permalink_structure'] = $this->model->get_permalink_structure();
+        $random = array_rand($data['posts'], 1);
+
+        if ( ! empty($data['posts']))
+        {
+            $post = $data['posts'][$random];
+            $url = $this->get_link($data['permalink_structure'], $post);
+            $result[] = array(
+                'id' => $post['ID'],
+                'date' => strtotime($post['post_date']),
+                'title' => $post['post_title'],
+                'link' => $url,
+                'thumb' => $post['thumb'],
+                'meta' => $post['meta'],
+            );
+            return array('posts' => $result);
+        }
     }
 
     /**
@@ -141,7 +179,7 @@ class Wordpress_Wordpress {
         $data['permalink_structure'] = $this->model->get_permalink_structure();
         $random = array_rand($data['posts'], 1);
 
-        if (!empty($data['posts']))
+        if ( ! empty($data['posts']))
         {
             $post = $data['posts'][$random];
             $url = $this->get_link($data['permalink_structure'], $post);
@@ -166,7 +204,7 @@ class Wordpress_Wordpress {
      */
     public function get_related_posts($limit = 5, $tags = array(), $excluded_posts = array())
     {
-        if (!empty($tags))
+        if ( ! empty($tags))
         {
             $data = $this->model->get_posts(0, $limit, $tags, array(), FALSE, FALSE, array('thumbs'), $excluded_posts);
 
@@ -303,7 +341,7 @@ class Wordpress_Wordpress {
     public function get_last_comments($number = 5)
     {
         $comments = $this->model->get_comments(FALSE, $number);
-        if (!empty($comments))
+        if ( ! empty($comments))
         {
             $str = $this->model->get_permalink_structure();
             foreach ($comments as $k => $comment)
