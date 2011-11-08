@@ -145,7 +145,7 @@ class Model_Wordpress extends Model_Database {
             krsort($sticky_array);
 
             $sticky_posts = array_slice($sticky_array, 0, $sticky);
-            $sticky_order = DB::expr('FIELD('.Database::instance()->table_prefix().'posts.ID, '.implode(',', $sticky_posts).')');
+            $sticky_order = DB::expr('FIELD('.$this->_db->table_prefix().'posts.ID, '.implode(',', $sticky_posts).')');
             $query
                 ->and_where('posts.ID', 'IN', $sticky_posts)
                 ->order_by($sticky_order);
@@ -200,15 +200,15 @@ class Model_Wordpress extends Model_Database {
 		{
 			if ( ! empty($date['y']))
 			{
-                $query->and_where(DB::expr('YEAR('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['y']);
+                $query->and_where(DB::expr('YEAR('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['y']);
 
 				if ( ! empty($date['m']))
 				{
-                    $query->and_where(DB::expr('MONTH('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['m']);
+                    $query->and_where(DB::expr('MONTH('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['m']);
 				}
 				if ( ! empty($date['d']))
 				{
-                    $query->and_where(DB::expr('DAYOFMONTH('.Database::instance()->table_prefix().'posts.post_date)'), '=', $date['d']);
+                    $query->and_where(DB::expr('DAYOFMONTH('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['d']);
 				}
 			}
 		}
