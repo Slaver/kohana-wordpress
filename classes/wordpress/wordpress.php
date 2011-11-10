@@ -35,10 +35,10 @@ class Wordpress_Wordpress {
     protected $year = FALSE;
     protected $month = FALSE;
     protected $day = FALSE;
-    protected $category = array();
     protected $search = FALSE;
 
     // Title or ID of single post
+    public $category = array();
     public $title = FALSE;
     public $limit = 10;
     public $exclude = array();
@@ -128,7 +128,7 @@ class Wordpress_Wordpress {
      */
     public function get_sticky($number = 5)
     {
-        return $this->model->get_posts(array('sticky' => $number));
+        return $this->model->get_posts(array('sticky' => $number, 'select' => array('thumbs')), FALSE);
     }
 
     /**
