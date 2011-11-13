@@ -366,7 +366,7 @@ class Model_Wordpress extends Model_Database {
         $query = DB::select()
             ->from('comments')
             ->and_where('comment_approved', '=', 1)
-            ->order_by('comment_ID', 'DESC');
+            ->order_by('comment_ID', 'ASC');
 
         if ($post_id === NULL)
         {
