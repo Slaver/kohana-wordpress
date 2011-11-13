@@ -40,7 +40,6 @@ class Wordpress_Wordpress {
     // Title or ID of single post
     public $category = array();
     public $title = FALSE;
-    public $category = array();
     public $limit = 10;
     public $exclude = array();
 
@@ -53,14 +52,15 @@ class Wordpress_Wordpress {
     {
         $this->model = new Model_Wordpress();
 
-        $this->year = Request::initial()->param('year');
-        $this->month = Request::initial()->param('month');
-        $this->day = Request::initial()->param('day');
-        $this->title = Request::initial()->param('title');
+        $this->year = Request::current()->param('year');
+        $this->month = Request::current()->param('month');
+        $this->day = Request::current()->param('day');
+        $this->title = Request::current()->param('title');
 
-        $this->category = Request::initial()->param('category');
-        $this->search = Request::initial()->param('q');
-        $this->page = Request::initial()->param('page');
+        $this->prefix = Request::current()->param('prefix', 'category');
+        $this->category = Request::current()->param('category');
+        $this->search = Request::current()->param('q');
+        $this->page = Request::current()->param('page');
     }
 
     /**
@@ -90,7 +90,8 @@ class Wordpress_Wordpress {
         else
         {
             $data = $this->model->get_posts(array(
-                'category' => $this->category,
+                'taxonomy' => $this->category,
+                'taxonomy_type' => $this->prefix,
                 'numberposts' => $this->limit,
                 'offset' => $offset,
                 'exclude' => $this->exclude,
@@ -129,7 +130,7 @@ class Wordpress_Wordpress {
      */
     public function get_sticky($number = 5)
     {
-        $data = $this->model->get_posts(array('sticky' => $number, 'select' => array('thumbs')));
+        $data = $this->model->get_posts(array('sticky' => $number));
 
         $permalink_structure = $this->model->get_permalink_structure();
 

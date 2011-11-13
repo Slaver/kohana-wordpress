@@ -4,7 +4,6 @@
  * This model can be used for getting posts from WordPress database
  *
  * @package   WordPress
- * @version   0.1
  * @author    Viacheslav Radionov <radionov@gmail.com>
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
@@ -18,6 +17,7 @@ class Model_Wordpress extends Model_Database {
         parent::__construct();
 
         $this->config = $config;
+        $this->taxonomy = new Model_Taxonomy();
 	}
 
 	/**
@@ -56,7 +56,7 @@ class Model_Wordpress extends Model_Database {
 		    if ( ! empty($posts))
 		    {
                 // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
-			    $taxonomy = $this->get_post_taxonomy($posts);
+                $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
 			    foreach ($taxonomy as $id => $values)
 			    {
 				    $posts[$id]['taxonomy'] = $values;
@@ -112,7 +112,8 @@ class Model_Wordpress extends Model_Database {
         $default = array(
             'numberposts'     => 10,
             'offset'          => 0,
-            'category'        => NULL,
+            'taxonomy'        => NULL,
+            'taxonomy_type'   => 'category',
             'orderby'         => 'post_date',
             'order'           => 'DESC',
             'include'         => NULL,
@@ -213,26 +214,21 @@ class Model_Wordpress extends Model_Database {
 			}
 		}
 
-        if ( ! empty($category))
+        if ( ! empty($taxonomy))
 		{
-			$category = (array)$category;
-            foreach ($category as $cat)
+            if ($taxonomy_type === 'tag')
             {
-                if ( ! is_numeric($cat))
-                {
-                    $cat_id = DB::select()
-                        ->from('terms')
-                        ->where('slug', '=', urldecode($cat))
-                        ->execute()->as_array('slug', 'term_id');
+                $taxonomy_type = 'post_tag';
+            }
 
-                    if ($cat_id)
-                    {
-                        $category_array[] = $cat_id;
-                    }
-                }
-                else
+			$taxonomy = (array)$taxonomy;
+            foreach ($taxonomy as $tax)
+            {
+                $taxonomy_array[] = Wordpress_Taxonomy::instance($taxonomy_type)->get_taxonomy_id($tax);
+
+                if (Wordpress_Taxonomy::instance($taxonomy_type)->has_childs($tax))
                 {
-                    $category_array[] = $cat;
+                    $taxonomy_array += Wordpress_Taxonomy::instance($taxonomy_type)->get_childs($tax);
                 }
             }
 
@@ -242,10 +238,9 @@ class Model_Wordpress extends Model_Database {
                 ->join('term_taxonomy', 'INNER')
                 ->on('term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_taxonomy_id')
                 ->where_open()
-                    ->where('term_taxonomy.taxonomy', '=', 'category')
-                    ->or_where('term_taxonomy.taxonomy', '=', 'post_tag')
+                    ->where('term_taxonomy.taxonomy', '=', $taxonomy_type)
                 ->where_close()
-                ->and_where('term_taxonomy.term_id', 'IN', $category_array);
+                ->and_where('term_taxonomy.term_id', 'IN', $taxonomy_array);
 		}
 
         $posts = $query
@@ -266,7 +261,7 @@ class Model_Wordpress extends Model_Database {
             // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
             if (in_array('taxonomy', $select))
             {
-                $taxonomy = $this->get_post_taxonomy($posts);
+                $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
                 foreach ($taxonomy as $id => $values)
                 {
                     $posts[$id]['taxonomy'] = $values;
@@ -303,47 +298,6 @@ class Model_Wordpress extends Model_Database {
 				'total'	=> $total_rows,
 			);
 		}
-	}
-
-    /**
-	 * Retrieve the terms of the taxonomy that are attached to the post.
-     * Analogue of http://codex.wordpress.org/Function_Reference/get_the_terms
-	 *
-	 * @param  array $posts
-	 * @return array
-	 */
-	public function get_post_taxonomy($posts = array())
-	{
-		$post_id = array_keys($posts);
-
-        $taxonomy = DB::select('t.*', 'tt.*', 'tr.object_id')
-            ->from(array('terms', 't'))
-            ->join(array('term_taxonomy', 'tt'), 'INNER')
-                ->on('tt.term_id', '=', 't.term_id')
-            ->join(array('term_relationships', 'tr'), 'INNER')
-                ->on('tr.term_taxonomy_id', '=', 'tt.term_taxonomy_id')
-            ->where('tr.object_id', 'IN', $post_id)
-            ->execute()->as_array();
-
-        foreach ($taxonomy as $id=>$value)
-        {
-            if ($value['taxonomy'] == 'category')
-            {
-                $return[$value['object_id']]['category'][] = array(
-                    'name'  => $value['name'],
-                    'slug'  => $value['slug'],
-                );
-            }
-            elseif ($value['taxonomy'] == 'post_tag')
-            {
-                $return[$value['object_id']]['tags'][] = array(
-                    'name'  => $value['name'],
-                    'slug'  => $value['slug'],
-                );
-            }
-        }
-
-		return $return;
 	}
 
 	/**

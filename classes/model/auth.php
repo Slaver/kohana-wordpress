@@ -4,7 +4,6 @@
  * This model can be used for actions with WordPress' users
  *
  * @package   WordPress
- * @version   0.1
  * @author    Viacheslav Radionov <radionov@gmail.com>
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
