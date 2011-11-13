@@ -229,32 +229,36 @@ class Wordpress_Wordpress {
      */
     public function get_related_posts($limit = 5, $tags = array(), $excluded_posts = array())
     {
+        var_dump($tags);
         if ( ! empty($tags))
         {
-            $data = $this->model->get_posts(0, $limit, $tags, array(), FALSE, FALSE, array('thumbs'), $excluded_posts);
+            $data = $this->model->get_posts(array(
+                'taxonomy' => $tags,
+                'taxonomy_type' => 'category',
+                'numberposts' => $limit,
+                'exclude' => $excluded_posts,
+            ));
 
-            foreach ($data['posts'] as $post)
+            $permalink_structure = $this->model->get_permalink_structure();
+
+            if ( ! empty($data['posts']))
             {
-                $url = $this->get_link($data['permalink_structure'], $post);
-
-                $result[] = array(
-                    'id' => $post['ID'],
-                    'date' => strtotime($post['post_date']),
-                    'title' => $post['post_title'],
-                    'link' => $url,
-                    'content' => $post['post_content'],
-                    'thumb' => $post['thumb'],
-                );
+                foreach ($data['posts'] as $id => $post)
+                {
+                    // Text of post
+                    $content = $post['post_content'];
+                    if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
+                    {
+                        $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
+                    }
+                    else
+                    {
+                        $data['posts'][$id]['content'] = array($content);
+                    }
+                    $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
+                }
+                return $data;
             }
-
-            return array(
-                'posts' => $result,
-                'pages' => array(
-                    'limit' => $limit,
-                    'rows' => $data['rows'],
-                    'current' => $this->page,
-                ),
-            );
         }
     }
 
