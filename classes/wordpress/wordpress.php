@@ -35,11 +35,11 @@ class Wordpress_Wordpress {
     protected $year = FALSE;
     protected $month = FALSE;
     protected $day = FALSE;
-    protected $category = array();
     protected $search = FALSE;
 
     // Title or ID of single post
     public $title = FALSE;
+    public $category = array();
     public $limit = 10;
     public $exclude = array();
 
@@ -128,7 +128,30 @@ class Wordpress_Wordpress {
      */
     public function get_sticky($number = 5)
     {
-        return $this->model->get_posts(array('sticky' => $number));
+        $data = $this->model->get_posts(array('sticky' => $number));
+
+        $permalink_structure = $this->model->get_permalink_structure();
+
+        if ( ! empty($data['posts']))
+        {
+            foreach ($data['posts'] as $id => $post)
+            {
+                // Link
+                $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
+
+                // Text of post
+                $content = $post['post_content'];
+                if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
+                {
+                    $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
+                }
+                else
+                {
+                    $data['posts'][$id]['content'] = array($content);
+                }
+            }
+            return $data;
+        }
     }
 
     /**

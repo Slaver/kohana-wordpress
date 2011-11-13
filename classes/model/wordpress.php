@@ -220,10 +220,15 @@ class Model_Wordpress extends Model_Database {
             {
                 if ( ! is_numeric($cat))
                 {
-                    $category_array[] = DB::select()
+                    $cat_id = DB::select()
                         ->from('terms')
                         ->where('slug', '=', urldecode($cat))
                         ->execute()->as_array('slug', 'term_id');
+
+                    if ($cat_id)
+                    {
+                        $category_array[] = $cat_id;
+                    }
                 }
                 else
                 {
