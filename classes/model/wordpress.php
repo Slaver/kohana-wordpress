@@ -63,7 +63,7 @@ class Model_Wordpress extends Model_Database {
                     $posts[$id]['taxonomy'] = $values;
                 }
 
-                $meta = $this->get_post_meta( $posts );
+                $meta = $this->get_post_meta($posts);
                 foreach ($meta as $id => $values)
                 {
                     $posts[$id]['meta'] = $values;
@@ -380,21 +380,24 @@ class Model_Wordpress extends Model_Database {
         $comments = $query->limit($limit)->execute()->as_array('comment_ID');
         $posters = array_unique(Arr::pluck($comments, 'user_id'));
 
-        $users = DB::select()->from('users')
-            ->where('ID', 'IN', $posters)
-            ->execute()->as_array('ID');
-
-        foreach ($users as $poster=>$data)
+        if ($posters)
         {
-            $users[$poster] += DB::select()
-                ->from('usermeta')
-                ->where('user_id', '=', $poster)
-                ->execute()->as_array('meta_key', 'meta_value');
-        }
+            $users = DB::select()->from('users')
+                ->where('ID', 'IN', $posters)
+                ->execute()->as_array('ID');
 
-        foreach ($comments as $comment)
-        {
-            $comments[$comment['comment_ID']]['user'] = Arr::get($users, $comment['user_id']);
+            foreach ($users as $poster=>$data)
+            {
+                $users[$poster] += DB::select()
+                    ->from('usermeta')
+                    ->where('user_id', '=', $poster)
+                    ->execute()->as_array('meta_key', 'meta_value');
+            }
+
+            foreach ($comments as $comment)
+            {
+                $comments[$comment['comment_ID']]['user'] = Arr::get($users, $comment['user_id']);
+            }
         }
 
         return $comments;
@@ -453,20 +456,29 @@ class Model_Wordpress extends Model_Database {
         $time_from = isset($time_period['from']) ? date('Y-m-d H:i:s', $time_period['from']) : FALSE;
         $time_to = isset($time_period['to']) ? date('Y-m-d H:i:s', $time_period['to']) : FALSE;
 
-        if($time_from && $time_to)
+        if ($time_from && $time_to)
         {
             $query->and_where('post_date', 'BETWEEN', array($time_from, $time_to));
         }
-        else if($time_from)
+        else if ($time_from)
         {
             $query->and_where('post_date', '>', $time_from);
         }
-        else if($time_to)
+        else if ($time_to)
         {
             $query->and_where('post_date', '<', $time_to);
         }
 
-        return $query->limit($limit)->execute()->as_array('ID');
+        $posts = $query->limit($limit)->execute()->as_array('ID');
+
+        // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
+        $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
+        foreach ($taxonomy as $id => $values)
+        {
+            $posts[$id]['taxonomy'] = $values;
+        }
+
+        return $posts;
     }
 
     /**

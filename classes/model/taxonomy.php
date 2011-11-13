@@ -32,6 +32,7 @@ class Model_Taxonomy extends Model_Database {
 
         foreach ($taxonomy as $id=>$value)
         {
+            // @TODO nested categories
             if ($value['taxonomy'] == 'category')
             {
                 $return[$value['object_id']]['category'][] = array(

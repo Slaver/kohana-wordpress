@@ -157,6 +157,33 @@ class Wordpress_Wordpress {
     }
 
     /**
+     * Get popular posts
+     *
+     * @return array
+     */
+    public function get_popular($number = 5, $period = 'month')
+    {
+        if ($period === 'month')
+        {
+            $time_period = array('from' => strtotime('-10 month'));
+        }
+
+        $data = $this->model->get_popular_posts($number, $time_period);
+
+        $permalink_structure = $this->model->get_permalink_structure();
+
+        if ( ! empty($data))
+        {
+            foreach ($data as $id => $post)
+            {
+                // Link
+                $data[$id]['link'] = $this->get_link($permalink_structure, $post);
+            }
+            return $data;
+        }
+    }
+
+    /**
      * Return one static page
      *
      * @return array
@@ -258,7 +285,10 @@ class Wordpress_Wordpress {
         $url = str_replace("%second%", date('s', $date), $url);
         $url = str_replace("%postname%", $post_data['post_name'], $url);
         $url = str_replace("%post_id%", $post_data['ID'], $url);
-        $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
+        if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
+        {
+            $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
+        }
 
         return $url;
     }
