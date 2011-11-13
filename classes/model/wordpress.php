@@ -35,7 +35,8 @@ class Model_Wordpress extends Model_Database {
         {
             $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
                 ->from('posts')
-                ->join('users', 'LEFT')->on('posts.post_author', '=', 'users.ID')
+                ->join('users', 'LEFT')
+                    ->on('posts.post_author', '=', 'users.ID')
                 ->and_where('post_type', '=', $type)
                 ->and_where('post_status', '=', 'publish')
                 ->group_by('posts.ID')
@@ -108,6 +109,7 @@ class Model_Wordpress extends Model_Database {
          * 'select' - array of custom information. If you do not need it,
          *    you can set it empty for reduce the number of database requests
          * 'sticky' - number of sticky posts
+         * 'taxonomy_type' - type of taxonomy
          */
         $default = array(
             'numberposts'     => 10,
@@ -134,7 +136,7 @@ class Model_Wordpress extends Model_Database {
         $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
             ->from('posts')
             ->join('users', 'LEFT')
-            ->on('posts.post_author', '=', 'users.ID')
+                ->on('posts.post_author', '=', 'users.ID')
             ->and_where('post_type', '=', $post_type)
             ->and_where('post_status', '=', 'publish');
 
@@ -176,7 +178,7 @@ class Model_Wordpress extends Model_Database {
         {
             $query
                 ->join('postmeta', 'LEFT')
-                ->on('postmeta.post_id', '=', 'posts.ID')
+                    ->on('postmeta.post_id', '=', 'posts.ID')
                 ->and_where('postmeta.meta_key', '=', $meta_key);
 
             if ( ! empty($meta_value))
@@ -234,12 +236,12 @@ class Model_Wordpress extends Model_Database {
 
             $query
                 ->join('term_relationships', 'INNER')
-                ->on('posts.ID', '=', 'term_relationships.object_id')
+                    ->on('posts.ID', '=', 'term_relationships.object_id')
                 ->join('term_taxonomy', 'INNER')
-                ->on('term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_taxonomy_id')
-                ->where_open()
-                ->where('term_taxonomy.taxonomy', '=', $taxonomy_type)
-                ->where_close()
+                    ->on('term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_taxonomy_id')
+                        ->where_open()
+                            ->where('term_taxonomy.taxonomy', '=', $taxonomy_type)
+                        ->where_close()
                 ->and_where('term_taxonomy.term_id', 'IN', $taxonomy_array);
         }
 
@@ -336,7 +338,7 @@ class Model_Wordpress extends Model_Database {
         $thumbs = DB::select()
             ->from(array('posts', 'p'))
             ->join(array('postmeta', 'm'), 'LEFT')
-            ->on('p.ID', '=', 'm.post_id')
+                ->on('p.ID', '=', 'm.post_id')
             ->where('p.ID', 'IN', $posts)
             ->and_where('meta_key', '=', '_wp_attachment_metadata')
             ->execute()->as_array();
@@ -375,7 +377,27 @@ class Model_Wordpress extends Model_Database {
             $query->and_where('comment_post_ID', '=', $post_id);
         }
 
-        return $query->limit($limit)->execute()->as_array();
+        $comments = $query->limit($limit)->execute()->as_array('comment_ID');
+        $posters = array_unique(Arr::pluck($comments, 'user_id'));
+
+        $users = DB::select()->from('users')
+            ->where('ID', 'IN', $posters)
+            ->execute()->as_array('ID');
+
+        foreach ($users as $poster=>$data)
+        {
+            $users[$poster] += DB::select()
+                ->from('usermeta')
+                ->where('user_id', '=', $poster)
+                ->execute()->as_array('meta_key', 'meta_value');
+        }
+
+        foreach ($comments as $comment)
+        {
+            $comments[$comment['comment_ID']]['user'] = Arr::get($users, $comment['user_id']);
+        }
+
+        return $comments;
     }
 
     /**
