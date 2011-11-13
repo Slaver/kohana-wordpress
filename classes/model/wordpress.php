@@ -100,7 +100,7 @@ class Model_Wordpress extends Model_Database {
      * @param  array   $args
      * @return array
      */
-	public function get_posts($args = array())
+	public function get_posts($args = array(), $pagination = TRUE)
 	{
         /**
          * All default WordPress arguments and two custom:
@@ -256,8 +256,12 @@ class Model_Wordpress extends Model_Database {
 
 		if ( ! empty($posts))
 		{
-            // Count all post by crteria for pagination
-            $total_rows = (int)$query->select(DB::expr('COUNT(*) as total_rows'))->limit(NULL)->offset(NULL)->execute()->get('total_rows');
+            // Count all post by criteria for pagination
+            $total_rows = count($posts);
+            if ($pagination)
+            {
+                $total_rows = (int)$query->select(DB::expr('COUNT(*) as total_rows'))->limit(NULL)->offset(NULL)->execute()->get('total_rows');
+            }
 
             // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
             if (in_array('taxonomy', $select))
