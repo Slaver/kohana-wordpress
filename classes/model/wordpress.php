@@ -13,26 +13,26 @@ class Model_Wordpress extends Model_Database {
     protected $config = array();
 
     public function __construct($config = array())
-	{
+    {
         parent::__construct();
 
         $this->config = $config;
         $this->taxonomy = new Model_Taxonomy();
-	}
+    }
 
-	/**
-	 * Takes a post ID or post name (slug) and returns the database record for
+    /**
+     * Takes a post ID or post name (slug) and returns the database record for
      * that post, includes meta- and taxonomy information for that post.
      * Analogue of http://codex.wordpress.org/Function_Reference/get_post
-	 *
+     *
      * @param  mixed  $id   (ID|post_name)
      * @param  string $type (post|page|attachment)
-	 * @return array
-	 */
-	public function get_post($id = NULL, $type = 'post')
-	{
-		if ($id)
-		{
+     * @return array
+     */
+    public function get_post($id = NULL, $type = 'post')
+    {
+        if ($id)
+        {
             $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
                 ->from('posts')
                 ->join('users', 'LEFT')->on('posts.post_author', '=', 'users.ID')
@@ -53,20 +53,20 @@ class Model_Wordpress extends Model_Database {
 
             $posts = $query->execute()->as_array('ID');
 
-		    if ( ! empty($posts))
-		    {
+            if ( ! empty($posts))
+            {
                 // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
                 $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
-			    foreach ($taxonomy as $id => $values)
-			    {
-				    $posts[$id]['taxonomy'] = $values;
-			    }
+                foreach ($taxonomy as $id => $values)
+                {
+                    $posts[$id]['taxonomy'] = $values;
+                }
 
-			    $meta = $this->get_post_meta( $posts );
-			    foreach ($meta as $id => $values)
-			    {
-				    $posts[$id]['meta'] = $values;
-			    }
+                $meta = $this->get_post_meta( $posts );
+                foreach ($meta as $id => $values)
+                {
+                    $posts[$id]['meta'] = $values;
+                }
 
                 foreach ($posts as $id => $values)
                 {
@@ -85,14 +85,14 @@ class Model_Wordpress extends Model_Database {
                 }
 
                 return array(
-				    'posts'	=> $posts,
-				    'total'	=> 1,
-			    );
-		    }
+                    'posts'	=> $posts,
+                    'total'	=> 1,
+                );
+            }
         }
-	}
+    }
 
-	/**
+    /**
      * This function retrieves a list of latest posts or posts matching criteria.
      * Also retrieves meta, taxonomy and thumbnails of posts
      * Analogue of http://codex.wordpress.org/Function_Reference/get_posts
@@ -100,8 +100,8 @@ class Model_Wordpress extends Model_Database {
      * @param  array   $args
      * @return array
      */
-	public function get_posts($args = array(), $pagination = TRUE)
-	{
+    public function get_posts($args = array(), $pagination = TRUE)
+    {
         /**
          * All default WordPress arguments and two custom:
          * 'search' - search request (from GET-query)
@@ -134,7 +134,7 @@ class Model_Wordpress extends Model_Database {
         $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
             ->from('posts')
             ->join('users', 'LEFT')
-                ->on('posts.post_author', '=', 'users.ID')
+            ->on('posts.post_author', '=', 'users.ID')
             ->and_where('post_type', '=', $post_type)
             ->and_where('post_status', '=', 'publish');
 
@@ -176,7 +176,7 @@ class Model_Wordpress extends Model_Database {
         {
             $query
                 ->join('postmeta', 'LEFT')
-                    ->on('postmeta.post_id', '=', 'posts.ID')
+                ->on('postmeta.post_id', '=', 'posts.ID')
                 ->and_where('postmeta.meta_key', '=', $meta_key);
 
             if ( ! empty($meta_value))
@@ -189,39 +189,39 @@ class Model_Wordpress extends Model_Database {
             }
         }
 
-		if ( ! empty($search))
-		{
+        if ( ! empty($search))
+        {
             $search = "%".$search."%";
             $query
-                ->and_where('posts.post_title', 'LIKE', $search)
-                ->and_where('posts.post_content', 'LIKE', $search);
-		}
+            ->and_where('posts.post_title', 'LIKE', $search)
+            ->and_where('posts.post_content', 'LIKE', $search);
+        }
 
         if ( ! empty($date))
-		{
-			if ( ! empty($date['y']))
-			{
+        {
+            if ( ! empty($date['y']))
+            {
                 $query->and_where(DB::expr('YEAR('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['y']);
 
-				if ( ! empty($date['m']))
-				{
+                if ( ! empty($date['m']))
+                {
                     $query->and_where(DB::expr('MONTH('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['m']);
-				}
-				if ( ! empty($date['d']))
-				{
+                }
+                if ( ! empty($date['d']))
+                {
                     $query->and_where(DB::expr('DAYOFMONTH('.$this->_db->table_prefix().'posts.post_date)'), '=', $date['d']);
-				}
-			}
-		}
+                }
+            }
+        }
 
         if ( ! empty($taxonomy))
-		{
+        {
             if ($taxonomy_type === 'tag')
             {
                 $taxonomy_type = 'post_tag';
             }
 
-			$taxonomy = (array)$taxonomy;
+            $taxonomy = (array)$taxonomy;
             foreach ($taxonomy as $tax)
             {
                 $taxonomy_array[] = Wordpress_Taxonomy::instance($taxonomy_type)->get_taxonomy_id($tax);
@@ -238,10 +238,10 @@ class Model_Wordpress extends Model_Database {
                 ->join('term_taxonomy', 'INNER')
                 ->on('term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_taxonomy_id')
                 ->where_open()
-                    ->where('term_taxonomy.taxonomy', '=', $taxonomy_type)
+                ->where('term_taxonomy.taxonomy', '=', $taxonomy_type)
                 ->where_close()
                 ->and_where('term_taxonomy.term_id', 'IN', $taxonomy_array);
-		}
+        }
 
         $posts = $query
             ->order_by('posts.'.$orderby, $order)
@@ -249,8 +249,8 @@ class Model_Wordpress extends Model_Database {
             ->offset($offset)
             ->execute()->as_array('ID');
 
-		if ( ! empty($posts))
-		{
+        if ( ! empty($posts))
+        {
             // Count all post by criteria for pagination
             $total_rows = count($posts);
             if ($pagination)
@@ -293,23 +293,23 @@ class Model_Wordpress extends Model_Database {
                 }
             }
 
-			return array(
-				'posts'	=> $posts,
-				'total'	=> $total_rows,
-			);
-		}
-	}
+            return array(
+                'posts'	=> $posts,
+                'total'	=> $total_rows,
+            );
+        }
+    }
 
-	/**
-	 * Returns a multidimensional array with all custom fields of a particular post or page
+    /**
+     * Returns a multidimensional array with all custom fields of a particular post or page
      * Analogue of http://codex.wordpress.org/Function_Reference/get_post_custom
-	 *
-	 * @param  array $posts
-	 * @return array
-	 */
-	public function get_post_meta($posts = array())
-	{
-		$post_id = array_keys($posts);
+     *
+     * @param  array $posts
+     * @return array
+     */
+    public function get_post_meta($posts = array())
+    {
+        $post_id = array_keys($posts);
 
         $meta = DB::select('post_id', 'meta_key', 'meta_value')
             ->from('postmeta')
@@ -322,21 +322,21 @@ class Model_Wordpress extends Model_Database {
             $return[$value['post_id']][$value['meta_key']] = $value['meta_value'];
         }
 
-		return $return;
-	}
+        return $return;
+    }
 
-	/**
-	 * Gets Post Thumbnail as set in post's or page's edit screen
-	 *
-	 * @param  array  $posts
-	 * @return array
-	 */
-	public function get_post_thumbs($posts = array())
-	{
+    /**
+     * Gets Post Thumbnail as set in post's or page's edit screen
+     *
+     * @param  array  $posts
+     * @return array
+     */
+    public function get_post_thumbs($posts = array())
+    {
         $thumbs = DB::select()
             ->from(array('posts', 'p'))
             ->join(array('postmeta', 'm'), 'LEFT')
-                ->on('p.ID', '=', 'm.post_id')
+            ->on('p.ID', '=', 'm.post_id')
             ->where('p.ID', 'IN', $posts)
             ->and_where('meta_key', '=', '_wp_attachment_metadata')
             ->execute()->as_array();
@@ -350,8 +350,8 @@ class Model_Wordpress extends Model_Database {
             $return[$id] = $files[$post];
         }
 
-		return $return;
-	}
+        return $return;
+    }
 
     /**
      * Retrieve a list of comments
@@ -396,13 +396,13 @@ class Model_Wordpress extends Model_Database {
         }
     }
 
-	/**
-	 * Display archive links by month
-	 *
-	 * @return array
-	 */
-	public function get_archives()
-	{
+    /**
+     * Display archive links by month
+     *
+     * @return array
+     */
+    public function get_archives()
+    {
         return DB::select(array(DB::expr('YEAR(post_date)'), 'year'), array(DB::expr('MONTH(post_date)'), 'month'), array(DB::expr('COUNT(ID)'), 'posts'))
             ->from('posts')
             ->and_where('post_type', '=', 'post')
@@ -411,17 +411,17 @@ class Model_Wordpress extends Model_Database {
             ->group_by(DB::expr('MONTH(post_date)'))
             ->order_by('post_date', 'DESC')
             ->execute()->as_array();
-	}
+    }
 
-	/**
-	 * Display popular posts for any period (by comments)
+    /**
+     * Display popular posts for any period (by comments)
      * 
      * @param  string $limit
      * @param  array  $time_period
      * @return array
-	 */
-	public function get_popular_posts($limit = 10, $time_period = array())
-	{
+     */
+    public function get_popular_posts($limit = 10, $time_period = array())
+    {
         $query = DB::select()
             ->from('posts')
             ->and_where('post_type', '=', 'post')
@@ -429,23 +429,23 @@ class Model_Wordpress extends Model_Database {
             ->order_by('comment_count', 'DESC');
 
         $time_from = isset($time_period['from']) ? date('Y-m-d H:i:s', $time_period['from']) : FALSE;
-		$time_to = isset($time_period['to']) ? date('Y-m-d H:i:s', $time_period['to']) : FALSE;
+        $time_to = isset($time_period['to']) ? date('Y-m-d H:i:s', $time_period['to']) : FALSE;
 
-		if($time_from && $time_to)
-		{
+        if($time_from && $time_to)
+        {
             $query->and_where('post_date', 'BETWEEN', array($time_from, $time_to));
-		}
-		else if($time_from)
-		{
+        }
+        else if($time_from)
+        {
             $query->and_where('post_date', '>', $time_from);
-		}
-		else if($time_to)
-		{
+        }
+        else if($time_to)
+        {
             $query->and_where('post_date', '<', $time_to);
-		}
+        }
 
         return $query->limit($limit)->execute()->as_array('ID');
-	}
+    }
 
     /**
      * Add new comment
@@ -540,15 +540,15 @@ class Model_Wordpress extends Model_Database {
             ->execute()->as_array('option_name', 'option_value');
     }
 
-	/**
-	 * Get WordPress permalink structure
-	 *
-	 * @return string
-	 */
-	public function get_permalink_structure()
-	{
+    /**
+     * Get WordPress permalink structure
+     *
+     * @return string
+     */
+    public function get_permalink_structure()
+    {
         $options = $this->get_options();
 
         return Arr::get($options, 'permalink_structure');
-	}
+    }
 }
