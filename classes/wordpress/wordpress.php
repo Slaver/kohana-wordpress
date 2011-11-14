@@ -87,20 +87,20 @@ class Wordpress_Wordpress {
         {
             $data = $this->model->get_posts(array(
                 'numberposts' => $this->limit,
-                'offset' => $offset,
-                'date' => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
+                'offset'      => $offset,
+                'date'        => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
             ));
         }
         // List of posts
         else
         {
             $data = $this->model->get_posts(array(
-                'taxonomy' => $this->category,
+                'taxonomy'      => $this->category,
                 'taxonomy_type' => $this->prefix,
-                'numberposts' => $this->limit,
-                'offset' => $offset,
-                'exclude' => $this->exclude,
-                'search' => $this->search,
+                'numberposts'   => $this->limit,
+                'offset'        => $offset,
+                'exclude'       => $this->exclude,
+                'search'        => $this->search,
             ));
         }
 
@@ -238,10 +238,10 @@ class Wordpress_Wordpress {
         if ( ! empty($tags))
         {
             $data = $this->model->get_posts(array(
-                'taxonomy' => $tags,
+                'taxonomy'      => $tags,
                 'taxonomy_type' => 'category',
-                'numberposts' => $limit,
-                'exclude' => $excluded_posts,
+                'numberposts'   => $limit,
+                'exclude'       => $excluded_posts,
             ));
 
             $permalink_structure = $this->model->get_permalink_structure();
@@ -322,7 +322,7 @@ class Wordpress_Wordpress {
      */
     public function get_comment($comment_id)
     {
-        return $this->model->get_comment($comment_id);
+        return $this->comments->get_comment($comment_id);
     }
 
     /**
@@ -332,7 +332,7 @@ class Wordpress_Wordpress {
      */
     public function update_comment($comment_id, $input)
     {
-        return $this->model->update_comment($comment_id, $input);
+        return $this->comments->update_comment($comment_id, $input);
     }
 
     /**
@@ -342,7 +342,7 @@ class Wordpress_Wordpress {
      */
     public function delete_comment($comment_id)
     {
-        return $this->model->delete_comment($comment_id);
+        return $this->comments->delete_comment($comment_id);
     }
 
     /**
@@ -354,19 +354,7 @@ class Wordpress_Wordpress {
      */
     public function add_comment($message, $user, $post_id, $status = 1)
     {
-        return $this->model->add_comment($message, $user, $post_id, $status);
-    }
-
-    /**
-     * Get popular posts
-     *
-     * @param  string $limit
-     * @param  array  $time_period
-     * @return array
-     */
-    public function get_popular_posts($limit = 40, $time_period = array())
-    {
-        return $this->model->get_popular_posts($limit, $time_period);
+        return $this->comments->add_comment($message, $user, $post_id, $status);
     }
 
     /**
@@ -388,21 +376,6 @@ class Wordpress_Wordpress {
             }
             return $data;
         }
-    }
-
-    /**
-     * List of options
-     *
-     * @return array
-     */
-    public function get_options()
-    {
-        $options = $this->model->get_options();
-        foreach ($options as $option)
-        {
-            $result[$option['option_name']] = $option['option_value'];
-        }
-        return $result;
     }
 
 }
