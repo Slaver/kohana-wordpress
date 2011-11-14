@@ -4,7 +4,6 @@
  * WordPress posts' actions library for Kohana
  *
  * @package   WordPress
- * @version   0.1
  * @author    Viacheslav Radionov <radionov@gmail.com>
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
@@ -30,7 +29,12 @@ class Wordpress_Wordpress {
         return Wordpress::$_instance;
     }
 
+    /**
+     * Models
+     */
     protected $model = FALSE;
+    protected $comments = FALSE;
+
     protected $page = 1;
     protected $year = FALSE;
     protected $month = FALSE;
@@ -51,6 +55,7 @@ class Wordpress_Wordpress {
     public function __construct()
     {
         $this->model = new Model_Wordpress();
+        $this->comments = new Model_Comments();
 
         $this->year = Request::current()->param('year');
         $this->month = Request::current()->param('month');
@@ -306,7 +311,7 @@ class Wordpress_Wordpress {
      */
     public function get_comments($post_id = NULL, $limit = 10)
     {
-        return $this->model->get_comments($post_id, $limit);
+        return $this->comments->get_comments($post_id, $limit);
     }
 
     /**
@@ -372,7 +377,7 @@ class Wordpress_Wordpress {
      */
     public function get_last_comments($number = 5)
     {
-        $comments = $this->model->get_comments(FALSE, $number);
+        $comments = $this->comments->get_comments(FALSE, $number);
         if ( ! empty($comments))
         {
             $str = $this->model->get_permalink_structure();
