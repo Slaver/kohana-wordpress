@@ -135,7 +135,7 @@ class Wordpress_Wordpress {
      */
     public function get_sticky($number = 5)
     {
-        $data = $this->model->get_posts(array('sticky' => $number));
+        $data = $this->model->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
 
         $permalink_structure = $this->model->get_permalink_structure();
 
@@ -166,13 +166,9 @@ class Wordpress_Wordpress {
      *
      * @return array
      */
-    public function get_popular($number = 5, $period = 'month')
+    public function get_popular($number = 5, $period = '-1 month')
     {
-        if ($period === 'month')
-        {
-            $time_period = array('from' => strtotime('-10 month'));
-        }
-
+        $time_period = array('from' => strtotime($period));
         $data = $this->model->get_popular_posts($number, $time_period);
 
         $permalink_structure = $this->model->get_permalink_structure();
