@@ -81,7 +81,7 @@ class Model_Wordpress extends Model_Database {
                     $thumbs = $this->get_post_thumbs($thumb_posts);
                     foreach ($thumbs as $values)
                     {
-                        $posts[$id]['thumb'] = unserialize($values);
+                        $posts[$id]['thumb'] = $values;
                     }
                 }
 
@@ -289,7 +289,7 @@ class Model_Wordpress extends Model_Database {
                     $thumbs = $this->get_post_thumbs($thumb_posts);
                     foreach ($thumbs as $id => $values)
                     {
-                        $posts[$id]['thumb'] = unserialize($values);
+                        $posts[$id]['thumb'] = $values;
                     }
                 }
             }
@@ -342,9 +342,13 @@ class Model_Wordpress extends Model_Database {
             ->and_where('meta_key', '=', '_wp_attachment_metadata')
             ->execute()->as_array();
 
-        foreach ($meta as $id => $value)
+        foreach ($thumbs as $id => $value)
         {
-            $files[$value['ID']] = $value['meta_value'];
+            $files[$value['ID']]['attach'] = unserialize($value['meta_value']);
+            $files[$value['ID']]['content'] = array(
+                'post_content' => $value['post_content'],
+                'post_title' => $value['post_title'],
+            );
         }
         foreach ($posts as $id => $post)
         {
