@@ -46,10 +46,7 @@ class Wordpress_Auth {
     {
         $this->config = $config;
         $this->model = new Model_Auth($this->config);
-
         $this->options = Wordpress_Options::instance()->get_options();
-        //$this->options = $this->model->get_options();
-
         $this->auth_cookie = 'wordpress_' . md5($this->options['siteurl']);
         $this->secure_auth_cookie = 'wordpress_sec_' . md5($this->options['siteurl']);
         $this->logged_in_cookie = 'wordpress_logged_in_' . md5($this->options['siteurl']);
