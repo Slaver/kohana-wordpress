@@ -32,7 +32,7 @@ class Wordpress_Wordpress {
     /**
      * Models
      */
-    protected $model = FALSE;
+    protected $posts = FALSE;
     protected $comments = FALSE;
 
     protected $page = 1;
@@ -54,7 +54,7 @@ class Wordpress_Wordpress {
      */
     public function __construct()
     {
-        $this->model = new Model_Wordpress();
+        $this->posts = new Model_Posts();
         $this->comments = new Model_Comments();
 
         $this->year = Request::current()->param('year');
@@ -80,12 +80,12 @@ class Wordpress_Wordpress {
         // Single post
         if ($this->limit === 1 OR $this->title)
         {
-            $data = $this->model->get_post($this->title);
+            $data = $this->posts->get_post($this->title);
         }
         // Posts archive by date
         elseif ( ! empty($this->year))
         {
-            $data = $this->model->get_posts(array(
+            $data = $this->posts->get_posts(array(
                 'numberposts' => $this->limit,
                 'offset'      => $offset,
                 'date'        => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
@@ -94,7 +94,7 @@ class Wordpress_Wordpress {
         // List of posts
         else
         {
-            $data = $this->model->get_posts(array(
+            $data = $this->posts->get_posts(array(
                 'taxonomy'      => $this->category,
                 'taxonomy_type' => $this->prefix,
                 'numberposts'   => $this->limit,
@@ -104,26 +104,8 @@ class Wordpress_Wordpress {
             ));
         }
 
-        $permalink_structure = $this->model->get_permalink_structure();
-
         if ( ! empty($data['posts']))
         {
-            foreach ($data['posts'] as $id => $post)
-            {
-                // Link
-                $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
-
-                // Text of post
-                $content = $post['post_content'];
-                if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
-                {
-                    $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
-                }
-                else
-                {
-                    $data['posts'][$id]['content'] = array($content);
-                }
-            }
             return $data;
         }
     }
@@ -135,28 +117,10 @@ class Wordpress_Wordpress {
      */
     public function get_sticky($number = 5)
     {
-        $data = $this->model->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
-
-        $permalink_structure = $this->model->get_permalink_structure();
+        $data = $this->posts->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
 
         if ( ! empty($data['posts']))
         {
-            foreach ($data['posts'] as $id => $post)
-            {
-                // Link
-                $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
-
-                // Text of post
-                $content = $post['post_content'];
-                if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
-                {
-                    $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
-                }
-                else
-                {
-                    $data['posts'][$id]['content'] = array($content);
-                }
-            }
             return $data;
         }
     }
@@ -169,17 +133,10 @@ class Wordpress_Wordpress {
     public function get_popular($number = 5, $period = '-1 month')
     {
         $time_period = array('from' => strtotime($period));
-        $data = $this->model->get_popular_posts($number, $time_period);
-
-        $permalink_structure = $this->model->get_permalink_structure();
+        $data = $this->posts->get_popular_posts($number, $time_period);
 
         if ( ! empty($data))
         {
-            foreach ($data as $id => $post)
-            {
-                // Link
-                $data[$id]['link'] = $this->get_link($permalink_structure, $post);
-            }
             return $data;
         }
     }
@@ -191,7 +148,7 @@ class Wordpress_Wordpress {
      */
     public function get_static()
     {
-        return $this->model->get_post($this->title, 'page');
+        return $this->posts->get_post($this->title, 'page');
     }
 
     /**
@@ -201,8 +158,8 @@ class Wordpress_Wordpress {
      */
     public function get_random_posts($limit = '10', $category = 'sidebar', $excluded_posts = array())
     {
-        $data = $this->model->get_posts(0, 50, $category, array(), FALSE, array(), array('thumbs'), $excluded_posts, TRUE);
-        $data['permalink_structure'] = $this->model->get_permalink_structure();
+        $data = $this->posts->get_posts(0, 50, $category, array(), FALSE, array(), array('thumbs'), $excluded_posts, TRUE);
+        $data['permalink_structure'] = $this->posts->get_permalink_structure();
         $random = array_rand($data['posts'], 1);
 
         if ( ! empty($data['posts']))
@@ -233,31 +190,15 @@ class Wordpress_Wordpress {
         var_dump($tags);
         if ( ! empty($tags))
         {
-            $data = $this->model->get_posts(array(
+            $data = $this->posts->get_posts(array(
                 'taxonomy'      => $tags,
                 'taxonomy_type' => 'category',
                 'numberposts'   => $limit,
                 'exclude'       => $excluded_posts,
             ));
 
-            $permalink_structure = $this->model->get_permalink_structure();
-
             if ( ! empty($data['posts']))
             {
-                foreach ($data['posts'] as $id => $post)
-                {
-                    // Text of post
-                    $content = $post['post_content'];
-                    if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
-                    {
-                        $data['posts'][$id]['content'] = explode($matches[0], $content, 2);
-                    }
-                    else
-                    {
-                        $data['posts'][$id]['content'] = array($content);
-                    }
-                    $data['posts'][$id]['link'] = $this->get_link($permalink_structure, $post);
-                }
                 return $data;
             }
         }
@@ -270,32 +211,7 @@ class Wordpress_Wordpress {
      */
     public function get_archives()
     {
-        return $this->model->get_archives();
-    }
-
-    /**
-     * Return link of post by permalink structure
-     */
-    private function get_link($permalink_structure, $post_data)
-    {
-        $str = $permalink_structure == '' ? '/%year%/%monthnum%/%day%/%postname%' : $permalink_structure;
-
-        $date = strtotime($post_data['post_date']);
-        $url = $str;
-        $url = str_replace("%year%", date('Y', $date), $url);
-        $url = str_replace("%monthnum%", date('m', $date), $url);
-        $url = str_replace("%day%", date('d', $date), $url);
-        $url = str_replace("%hour%", date('H', $date), $url);
-        $url = str_replace("%minute%", date('i', $date), $url);
-        $url = str_replace("%second%", date('s', $date), $url);
-        $url = str_replace("%postname%", $post_data['post_name'], $url);
-        $url = str_replace("%post_id%", $post_data['ID'], $url);
-        if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
-        {
-            $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
-        }
-
-        return $url;
+        return $this->posts->get_archives();
     }
 
     /**
@@ -364,7 +280,7 @@ class Wordpress_Wordpress {
         $comments = $this->comments->get_comments(FALSE, $number);
         if ( ! empty($comments))
         {
-            $str = $this->model->get_permalink_structure();
+            $str = $this->posts->get_permalink_structure();
             foreach ($comments as $k => $comment)
             {
                 $data[$k] = $comment;

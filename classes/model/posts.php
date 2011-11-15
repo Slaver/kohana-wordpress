@@ -8,15 +8,14 @@
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
  */
-class Model_Wordpress extends Model_Database {
+class Model_Posts extends Model_Database {
 
     protected $config = array();
 
-    public function __construct($config = array())
+    public function __construct()
     {
         parent::__construct();
 
-        $this->config = $config;
         $this->taxonomy = new Model_Taxonomy();
     }
 
@@ -84,6 +83,8 @@ class Model_Wordpress extends Model_Database {
                         $posts[$id]['thumb'] = $values;
                     }
                 }
+
+                $posts = $this->_convert_more_text($posts);
 
                 return array(
                     'posts'	=> $posts,
@@ -294,6 +295,8 @@ class Model_Wordpress extends Model_Database {
                 }
             }
 
+            $posts = $this->_convert_more_text($posts);
+
             return array(
                 'posts'	=> $posts,
                 'total'	=> $total_rows,
@@ -424,8 +427,78 @@ class Model_Wordpress extends Model_Database {
      *
      * @return string
      */
-    public function get_permalink_structure()
+    private function _get_permalink_structure()
     {
         return Wordpress_Options::instance()->get_option('permalink_structure');
+    }
+
+    /**
+     * Retrieve full permalink for current post or post ID.
+     *
+     * @param  string  $permalink_structure
+     * @param  array   $post_data
+     * @return string
+     */
+    private function _get_permalink($permalink_structure, $post_data)
+    {
+        $str = ($permalink_structure == '' ? '/%year%/%monthnum%/%day%/%postname%' : $permalink_structure);
+
+        $date = strtotime($post_data['post_date']);
+        $url = $str;
+        $url = str_replace("%year%", date('Y', $date), $url);
+        $url = str_replace("%monthnum%", date('m', $date), $url);
+        $url = str_replace("%day%", date('d', $date), $url);
+        $url = str_replace("%hour%", date('H', $date), $url);
+        $url = str_replace("%minute%", date('i', $date), $url);
+        $url = str_replace("%second%", date('s', $date), $url);
+        $url = str_replace("%postname%", $post_data['post_name'], $url);
+        $url = str_replace("%post_id%", $post_data['ID'], $url);
+
+        if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
+        {
+            $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
+        }
+
+        return $url;
+    }
+
+    /**
+     * Get extended entry info (<!--more--> and links).
+     *
+     * There should not be any space after the second dash and before the word
+     * 'more'. There can be text or space(s) after the word 'more', but won't be
+     * referenced.
+     *
+     * The returned array has 'main' and 'extended' keys. Main has the text before
+     * the <code><!--more--></code>. The 'extended' key has the content after the
+     * <code><!--more--></code> comment.
+     *
+     * @param  string $posts Post content.
+     * @return array Post before ('main') and after ('extended').
+     */
+    private function _convert_more_text($posts)
+    {
+        $permalink_structure = $this->_get_permalink_structure();
+
+        foreach ($posts as $id => $post)
+        {
+            // Create link
+            $posts[$id]['link'] = $this->_get_permalink($permalink_structure, $post);
+
+            // Text of post
+            $content = $post['post_content'];
+
+            if (preg_match('/<!--more(.*?)?-->/', $content, $matches))
+            {
+                $parts = explode($matches[0], $content, 2);
+                $parts = Arr::map('UTF8::trim', $parts);
+                $posts[$id]['content'] = $parts;
+            }
+            else
+            {
+                $posts[$id]['content'] = array($content);
+            }
+        }
+        return $posts;
     }
 }

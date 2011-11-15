@@ -8,7 +8,7 @@
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
  */
-class Model_Auth extends Model_Wordpress {
+class Model_Auth extends Model_Database {
 
     /**
      * Get user information by nick, email or ID
