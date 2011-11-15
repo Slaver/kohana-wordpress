@@ -8,7 +8,7 @@
  * @copyright (c) 2011-2012 Viacheslav Radionov
  * @link      http://slaver.info/
  */
-class Wordpress_Wordpress {
+class Wordpress_Posts {
 
     // Instances
     protected static $_instance;
