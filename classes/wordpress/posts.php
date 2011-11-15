@@ -152,59 +152,6 @@ class Wordpress_Posts {
     }
 
     /**
-     * Get random posts
-     *
-     * @return array
-     */
-    public function get_random_posts($limit = '10', $category = 'sidebar', $excluded_posts = array())
-    {
-        $data = $this->posts->get_posts(0, 50, $category, array(), FALSE, array(), array('thumbs'), $excluded_posts, TRUE);
-        $data['permalink_structure'] = $this->posts->get_permalink_structure();
-        $random = array_rand($data['posts'], 1);
-
-        if ( ! empty($data['posts']))
-        {
-            $post = $data['posts'][$random];
-            $url = $this->get_link($data['permalink_structure'], $post);
-            $result[] = array(
-                'id' => $post['ID'],
-                'date' => strtotime($post['post_date']),
-                'title' => $post['post_title'],
-                'link' => $url,
-                'thumb' => $post['thumb'],
-                'meta' => $post['meta'],
-            );
-            return array('posts' => $result);
-        }
-    }
-
-    /**
-     * Get related posts
-     *
-     * @param  numeric $limit
-     * @param  array $tags
-     * @return array
-     */
-    public function get_related_posts($limit = 5, $tags = array(), $excluded_posts = array())
-    {
-        var_dump($tags);
-        if ( ! empty($tags))
-        {
-            $data = $this->posts->get_posts(array(
-                'taxonomy'      => $tags,
-                'taxonomy_type' => 'category',
-                'numberposts'   => $limit,
-                'exclude'       => $excluded_posts,
-            ));
-
-            if ( ! empty($data['posts']))
-            {
-                return $data;
-            }
-        }
-    }
-
-    /**
      * Список постов по месяцам
      *
      * @return array

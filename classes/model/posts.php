@@ -305,6 +305,51 @@ class Model_Posts extends Model_Database {
     }
 
     /**
+     * Display popular posts for any period (by comments)
+     * 
+     * @param  string $limit
+     * @param  array  $time_period
+     * @return array
+     */
+    public function get_popular_posts($limit = 10, $time_period = array())
+    {
+        $query = DB::select()
+            ->from('posts')
+            ->and_where('post_type', '=', 'post')
+            ->and_where('post_status', '=', 'publish')
+            ->order_by('comment_count', 'DESC');
+
+        $time_from = isset($time_period['from']) ? date('Y-m-d H:i:s', $time_period['from']) : FALSE;
+        $time_to = isset($time_period['to']) ? date('Y-m-d H:i:s', $time_period['to']) : FALSE;
+
+        if ($time_from && $time_to)
+        {
+            $query->and_where('post_date', 'BETWEEN', array($time_from, $time_to));
+        }
+        else if ($time_from)
+        {
+            $query->and_where('post_date', '>', $time_from);
+        }
+        else if ($time_to)
+        {
+            $query->and_where('post_date', '<', $time_to);
+        }
+
+        $posts = $query->limit($limit)->execute()->as_array('ID');
+
+        // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
+        $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
+        foreach ($taxonomy as $id => $values)
+        {
+            $posts[$id]['taxonomy'] = $values;
+        }
+
+        $posts = $this->_convert_more_text($posts);
+
+        return $posts;
+    }
+
+    /**
      * Returns a multidimensional array with all custom fields of a particular post or page
      * Analogue of http://codex.wordpress.org/Function_Reference/get_post_custom
      *
@@ -380,49 +425,6 @@ class Model_Posts extends Model_Database {
     }
 
     /**
-     * Display popular posts for any period (by comments)
-     * 
-     * @param  string $limit
-     * @param  array  $time_period
-     * @return array
-     */
-    public function get_popular_posts($limit = 10, $time_period = array())
-    {
-        $query = DB::select()
-            ->from('posts')
-            ->and_where('post_type', '=', 'post')
-            ->and_where('post_status', '=', 'publish')
-            ->order_by('comment_count', 'DESC');
-
-        $time_from = isset($time_period['from']) ? date('Y-m-d H:i:s', $time_period['from']) : FALSE;
-        $time_to = isset($time_period['to']) ? date('Y-m-d H:i:s', $time_period['to']) : FALSE;
-
-        if ($time_from && $time_to)
-        {
-            $query->and_where('post_date', 'BETWEEN', array($time_from, $time_to));
-        }
-        else if ($time_from)
-        {
-            $query->and_where('post_date', '>', $time_from);
-        }
-        else if ($time_to)
-        {
-            $query->and_where('post_date', '<', $time_to);
-        }
-
-        $posts = $query->limit($limit)->execute()->as_array('ID');
-
-        // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
-        $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
-        foreach ($taxonomy as $id => $values)
-        {
-            $posts[$id]['taxonomy'] = $values;
-        }
-
-        return $posts;
-    }
-
-    /**
      * Get WordPress permalink structure
      *
      * @return string
@@ -439,12 +441,13 @@ class Model_Posts extends Model_Database {
      * @param  array   $post_data
      * @return string
      */
-    private function _get_permalink($permalink_structure, $post_data)
+    private function _get_permalink($post_data)
     {
-        $str = ($permalink_structure == '' ? '/%year%/%monthnum%/%day%/%postname%' : $permalink_structure);
+        //'/%year%/%monthnum%/%day%/%postname%'
+        $permalink_structure = $this->_get_permalink_structure();
 
         $date = strtotime($post_data['post_date']);
-        $url = $str;
+        $url = $permalink_structure;
         $url = str_replace("%year%", date('Y', $date), $url);
         $url = str_replace("%monthnum%", date('m', $date), $url);
         $url = str_replace("%day%", date('d', $date), $url);
@@ -478,12 +481,10 @@ class Model_Posts extends Model_Database {
      */
     private function _convert_more_text($posts)
     {
-        $permalink_structure = $this->_get_permalink_structure();
-
         foreach ($posts as $id => $post)
         {
             // Create link
-            $posts[$id]['link'] = $this->_get_permalink($permalink_structure, $post);
+            $posts[$id]['link'] = $this->_get_permalink($post);
 
             // Text of post
             $content = $post['post_content'];
