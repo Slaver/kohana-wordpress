@@ -114,6 +114,24 @@ class Wordpress_Auth {
     }
 
     /**
+     * Check if such user already registered
+     *
+     * @param type $value
+     * @return type 
+     */
+    public function is_user_exist($value)
+    {
+        if (preg_match('/^[a-z0-9\.\-_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
+        {
+            return (bool)$this->model->is_mail_exist($value);
+        }
+        else
+        {
+            return (bool)$this->model->is_username_exist($value);
+        }
+    }
+
+    /**
      * Attempt to log in a user
      *
      * @param   string   username to log in
