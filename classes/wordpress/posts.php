@@ -22,30 +22,28 @@ class Wordpress_Posts {
     {
         if ( ! isset(Wordpress::$_instance))
         {
-            // Create a new session instance
             Wordpress::$_instance = new self();
         }
 
         return Wordpress::$_instance;
     }
 
-    /**
-     * Models
-     */
     protected $posts = FALSE;
     protected $comments = FALSE;
 
-    protected $page = 1;
     protected $year = FALSE;
     protected $month = FALSE;
     protected $day = FALSE;
-    protected $search = FALSE;
 
-    // Title or ID of single post
-    public $category = array();
-    public $title = FALSE;
-    public $limit = 10;
+    public $id = FALSE;
+    public $numberposts = 10;
     public $exclude = array();
+
+    public $taxonomy_type = NULL;
+    public $taxonomy = array();
+
+    protected $search = FALSE;
+    protected $page = 1;
 
     /**
      * Constructor
@@ -60,10 +58,10 @@ class Wordpress_Posts {
         $this->year = Request::current()->param('year');
         $this->month = Request::current()->param('month');
         $this->day = Request::current()->param('day');
-        $this->title = Request::current()->param('title');
+        $this->id = Request::current()->param('id');
 
-        $this->prefix = Request::current()->param('prefix', 'category');
-        $this->category = Request::current()->param('category');
+        $this->taxonomy_type = Request::current()->param('taxonomy_type');
+        $this->taxonomy = Request::current()->param('taxonomy');
         $this->search = Request::current()->param('q');
         $this->page = Request::current()->param('page');
     }
@@ -73,41 +71,45 @@ class Wordpress_Posts {
      *
      * @return array
      */
-    public function get_posts()
+    public function get_posts($args = array())
     {
-        $offset = ( ! empty($this->page)) ? ($this->page * $this->limit - $this->limit) : 0;
+        $offset = ( ! empty($this->page)) ? ($this->page * $this->numberposts - $this->numberposts) : 0;
 
-        // Single post
-        if ($this->limit === 1 OR $this->title)
-        {
-            $data = $this->posts->get_post($this->title);
-        }
-        // Posts archive by date
-        elseif ( ! empty($this->year))
-        {
-            $data = $this->posts->get_posts(array(
-                'numberposts' => $this->limit,
-                'offset'      => $offset,
-                'date'        => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
-            ));
-        }
-        // List of posts
-        else
-        {
-            $data = $this->posts->get_posts(array(
-                'taxonomy'      => $this->category,
-                'taxonomy_type' => $this->prefix,
-                'numberposts'   => $this->limit,
-                'offset'        => $offset,
-                'exclude'       => $this->exclude,
-                'search'        => $this->search,
-            ));
-        }
+        $default = array(
+            'numberposts'   => $this->numberposts,
+            'offset'        => $offset,
+            'date'          => array('y' => $this->year, 'm' => $this->month, 'd' => $this->day),
+            'taxonomy'      => $this->taxonomy,
+            'taxonomy_type' => $this->taxonomy_type,
+            'exclude'       => $this->exclude,
+            'search'        => $this->search,
+            'id'            => $this->id,
+            'page'          => $this->page,
+            'post_type'     => 'post'
+        );
+        $args = Arr::overwrite($default, $args);
 
-        if ( ! empty($data['posts']))
-        {
-            return $data;
-        }
+        return $this->posts->get_posts($args);
+    }
+
+    /**
+     * Return one post by ID
+     *
+     * @return array
+     */
+    public function get_post($id)
+    {
+        return $this->posts->get_post($this->id);
+    }
+
+    /**
+     * Return one static page
+     *
+     * @return array
+     */
+    public function get_page()
+    {
+        return $this->posts->get_post($this->id, 'page');
     }
 
     /**
@@ -117,12 +119,7 @@ class Wordpress_Posts {
      */
     public function get_sticky($number = 5)
     {
-        $data = $this->posts->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
-
-        if ( ! empty($data['posts']))
-        {
-            return $data;
-        }
+        return $this->posts->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
     }
 
     /**
@@ -133,22 +130,8 @@ class Wordpress_Posts {
     public function get_popular($number = 5, $period = '-1 month')
     {
         $time_period = array('from' => strtotime($period));
-        $data = $this->posts->get_popular_posts($number, $time_period);
 
-        if ( ! empty($data))
-        {
-            return $data;
-        }
-    }
-
-    /**
-     * Return one static page
-     *
-     * @return array
-     */
-    public function get_static()
-    {
-        return $this->posts->get_post($this->title, 'page');
+        return $this->posts->get_popular_posts($number, $time_period);
     }
 
     /**

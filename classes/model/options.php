@@ -19,7 +19,7 @@ class Model_Options extends Model_Database {
     {
         return DB::select()
             ->from('options')
-            ->where('autoload', '=', 'yes')
-            ->execute()->as_array('option_name', 'option_value');
+            ->execute()
+            ->as_array('option_name', 'option_value');
     }
 }
