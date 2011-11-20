@@ -47,10 +47,11 @@ class Wordpress_Auth {
         $this->config = $config;
         $this->model = new Model_Auth($this->config);
         $this->options = Wordpress_Options::instance()->get_options();
+
         $this->auth_cookie = 'wordpress_' . md5($this->options['siteurl']);
-        $this->secure_auth_cookie = 'wordpress_sec_' . md5($this->options['siteurl']);
-        $this->logged_in_cookie = 'wordpress_logged_in_' . md5($this->options['siteurl']);
-        $this->cookie_domain = '.'.preg_replace('|https?://([^/]+)|i', '$1', $this->options['siteurl']);
+        $this->secure_auth_cookie = 'wordpress_sec_' . md5($this->wp_siteurl());
+        $this->logged_in_cookie = 'wordpress_logged_in_' . md5($this->wp_siteurl());
+        $this->cookie_domain = '.'.preg_replace('|https?://([^/]+)|i', '$1', $this->wp_siteurl());
     }
 
     /**
@@ -434,4 +435,16 @@ class Wordpress_Auth {
         return $password;
     }
 
+    private function wp_siteurl()
+    {
+        $siteurl = $this->options['siteurl'];
+        $subdomain = explode('.',parse_url($this->options['siteurl'], PHP_URL_HOST));
+        if (count($subdomain) > 2)
+        {
+            $subdomain = array_reverse($subdomain);
+            $siteurl = $subdomain[1].'.'.$subdomain[0];
+        }
+
+        return $siteurl;
+    }
 }

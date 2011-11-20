@@ -20,7 +20,7 @@ class Model_Comments extends Model_Database {
     {
         $query = DB::select()
             ->from('comments')
-            ->and_where('comment_approved', '=', 1)
+            ->and_where('comment_approved', 'IN', array('0', '1'))
             ->order_by('comment_ID', 'ASC');
 
         if ($post_id === NULL)
@@ -79,34 +79,41 @@ class Model_Comments extends Model_Database {
     /**
      * Add new comment
      *
-     * @param  string $message
-     * @param  array  $user
-     * @param  string $post_id
-     * @param  string $status
-     * @return boolean
+     * @param   string  $message
+     * @param   array   $user
+     * @return  boolean
      */
-    public function add_comment($message, $user, $post_id, $status = 1)
+    public function add_comment($input, $user)
     {
-        if ( ! empty($user) && ! empty($message) && $post_id)
+        if ( ! empty($user) && ! empty($input))
         {
+            $post_id = $input['comment_post_id'];
+            $subscribe = (Arr::get($input, 'subscribe') == 'subscribe');
+
             $comment = array(
                 'comment_post_ID'   => $post_id,
-                'comment_author'    => $user['display_name'],
-                'comment_author_email' => $user['user_email'],
+                'comment_author'    => Arr::get($user, 'display_name'),
+                'comment_author_email' => Arr::get($user, 'user_email'),
+                'comment_author_url'=> Arr::get($input, 'comment_author_url'),
+                'user_id'           => Arr::get($user, 'ID'),
                 'comment_date'      => date('Y-m-d H:i:s'),
                 'comment_date_gmt'  => gmdate('Y-m-d H:i:s'),
-                'comment_content'   => $message,
-                'comment_approved'  => $status,
+                'comment_content'   => $input['comment'],
+                'comment_parent'    => Arr::get($input, 'comment_parent', 0),
+                'comment_approved'  => Arr::get($input, 'comment_approved', 0),
                 'comment_agent'     => Arr::get($_SERVER, 'HTTP_USER_AGENT'),
                 'comment_author_IP' => Arr::get($_SERVER, 'SERVER_ADDR'),
+                'comment_subscribe' => $subscribe,
             );
 
             if (DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute())
             {
-                return DB::update('posts')
+                DB::update('posts')
                     ->set(array('comment_count' => DB::expr('comment_count + 1')))
                     ->where('ID', '=', $post_id)
                     ->execute();
+
+                return $comment;
             }
         }
     }

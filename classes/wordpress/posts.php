@@ -194,9 +194,9 @@ class Wordpress_Posts {
      * @param  array  $user
      * @return boolean
      */
-    public function add_comment($message, $user, $post_id, $status = 1)
+    public function add_comment($input, $user)
     {
-        return $this->comments->add_comment($message, $user, $post_id, $status);
+        return $this->comments->add_comment($input, $user);
     }
 
     /**
