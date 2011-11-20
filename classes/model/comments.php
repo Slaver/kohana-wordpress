@@ -72,7 +72,7 @@ class Model_Comments extends Model_Database {
                 ->from('comments')
                 ->and_where('comment_ID', '=', $comment_id)
                 ->limit(1)
-                ->execute()->as_array();
+                ->execute()->current();
         }
     }
 
@@ -106,14 +106,15 @@ class Model_Comments extends Model_Database {
                 'comment_subscribe' => $subscribe,
             );
 
-            if (DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute())
+            list($comment_id, ) = DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute();
+
+            if ($comment_id)
             {
                 DB::update('posts')
                     ->set(array('comment_count' => DB::expr('comment_count + 1')))
                     ->where('ID', '=', $post_id)
                     ->execute();
-
-                return $comment;
+                return $comment_id;
             }
         }
     }

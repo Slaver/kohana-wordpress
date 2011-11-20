@@ -177,11 +177,11 @@ class Wordpress_Auth {
 
         if ($remember)
         {
-            $expiration = $expire = time() + 1209600; // 2 weeks
+            $expiration = $expire = time() + Date::WEEK*2; // 2 weeks
         }
         else
         {
-            $expiration = time() + 172800; // 2 days
+            $expiration = time() + Date::DAY*2; // 2 days
             $expire = 0;
         }
 
@@ -309,7 +309,8 @@ class Wordpress_Auth {
                 $salt = SECRET_SALT;
             else
                 $salt = $this->options['auth_salt'];
-        } elseif ('logged_in' == $scheme)
+        }
+        elseif ('logged_in' == $scheme)
         {
             if (defined('LOGGED_IN_KEY') && ('' != LOGGED_IN_KEY) && ($wp_default_secret_key != LOGGED_IN_KEY))
                 $secret_key = LOGGED_IN_KEY;
@@ -318,7 +319,8 @@ class Wordpress_Auth {
                 $salt = LOGGED_IN_SALT;
             else
                 $salt = $this->options['logged_in_salt'];
-        } elseif ('nonce' == $scheme)
+        }
+        elseif ('nonce' == $scheme)
         {
             if (defined('NONCE_KEY') && ('' != NONCE_KEY) && ($wp_default_secret_key != NONCE_KEY))
                 $secret_key = NONCE_KEY;
@@ -327,7 +329,8 @@ class Wordpress_Auth {
                 $salt = NONCE_SALT;
             else
                 $salt = $this->options['nonce_salt'];
-        } else
+        }
+        else
         {
             // ensure each auth scheme has its own unique salt
             $salt = hash_hmac('md5', $scheme, $secret_key);
@@ -380,7 +383,9 @@ class Wordpress_Auth {
         $cookie_elements = explode('|', $cookie);
 
         if (count($cookie_elements) != 3)
+        {
             return FALSE;
+        }
 
         list($username, $expiration, $hmac) = $cookie_elements;
 
@@ -422,9 +427,13 @@ class Wordpress_Auth {
     {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         if ($special_chars)
+        {
             $chars .= '!@#$%^&*()';
+        }
         if ($extra_special_chars)
+        {
             $chars .= '-_ []{}<>~`+=,.;:/?|';
+        }
 
         $password = '';
         for ($i = 0; $i < $length; $i++)

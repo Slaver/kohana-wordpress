@@ -108,8 +108,8 @@ class Model_Auth extends Model_Database {
         }
 
         // Default meta-data
-        $userdata['wp_user_level'] = ( ! empty($this->config['wp_user_level'])) ? $this->config['wp_user_level'] : 0;
-        $userdata['wp_capabilities'] = ( ! empty($this->config['wp_capabilities'])) ? serialize($this->config['wp_capabilities']) : array();
+        $userdata['wp_user_level'] = 0;
+        $userdata['wp_capabilities'] = serialize(array('subscriber' => 1));
 
         if (empty($userdata['user_login']))
         {
@@ -161,7 +161,7 @@ class Model_Auth extends Model_Database {
         {
             foreach ($data as $field => $value)
             {
-                if ( ! in_array($field, $this->config['user_fields']) && ! empty($value))
+                if ( ! in_array($field, array_keys($new_data)) && ! empty($value))
                 {
                     DB::insert('usermeta', array('meta_key', 'meta_value', 'user_id'))
                         ->values(array($field, $value, $insert[0]))->execute();
@@ -179,9 +179,10 @@ class Model_Auth extends Model_Database {
      */
     public function update_user($id, $data)
     {
+        $default = array('user_login', 'user_pass', 'user_nicename', 'user_email', 'user_url', 'display_name');
         foreach ($data as $field => $value)
         {
-            if (in_array($field, $this->config['user_fields']))
+            if (in_array($field, $default))
             {
                 DB::update('users')->set(array($field => $value))->where('ID', '=', $id)->execute();
             }
