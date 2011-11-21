@@ -16,12 +16,12 @@ class Model_Comments extends Model_Database {
      * @param  numeric $post_id
      * @return array
      */
-    public function get_comments($post_id = NULL, $limit = NULL)
+    public function get_comments($post_id = NULL, $limit = NULL, $order = 'ASC')
     {
         $query = DB::select()
             ->from('comments')
             ->and_where('comment_approved', 'IN', array('0', '1'))
-            ->order_by('comment_ID', 'ASC');
+            ->order_by('comment_ID', $order);
 
         if ($post_id === NULL)
         {

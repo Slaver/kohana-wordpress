@@ -19,6 +19,7 @@ class Model_Taxonomy extends Model_Database {
      */
     public function get_post_taxonomy($posts = array())
     {
+        $return = array();
         $post_id = array_keys($posts);
 
         $taxonomy = DB::select('t.*', 'tt.*', 'tr.object_id')

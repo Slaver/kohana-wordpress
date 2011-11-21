@@ -151,9 +151,22 @@ class Wordpress_Posts {
      * @param  numeric $limit
      * @return array
      */
-    public function get_comments($post_id = NULL, $limit = 10)
+    public function get_comments($post_id = NULL, $limit = 10, $order = 'ASC')
     {
-        return $this->comments->get_comments($post_id, $limit);
+        $comments = $this->comments->get_comments($post_id, $limit, $order);
+
+        // Для списка последних постов
+        if ($post_id === NULL)
+        {
+            foreach ($comments as $key=>$comment)
+            {
+                $taxonomy = $this->posts->taxonomy->get_post_taxonomy(array($comment['comment_post_ID'] => $comment));
+                $comment['taxonomy'] = $taxonomy[$comment['comment_post_ID']];
+                $comments[$key]['link'] = $this->posts->_get_permalink($comment);
+            }
+        }
+
+        return $comments;
     }
 
     /**

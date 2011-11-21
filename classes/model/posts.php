@@ -429,7 +429,7 @@ class Model_Posts extends Model_Database {
      *
      * @return string
      */
-    private function _get_permalink_structure()
+    public function _get_permalink_structure()
     {
         return Wordpress_Options::instance()->get_option('permalink_structure');
     }
@@ -441,7 +441,7 @@ class Model_Posts extends Model_Database {
      * @param  array   $post_data
      * @return string
      */
-    private function _get_permalink($post_data)
+    public function _get_permalink($post_data)
     {
         //'/%year%/%monthnum%/%day%/%postname%'
         $permalink_structure = $this->_get_permalink_structure();
@@ -479,7 +479,7 @@ class Model_Posts extends Model_Database {
      * @param  string $posts Post content.
      * @return array Post before ('main') and after ('extended').
      */
-    private function _convert_more_text($posts)
+    public function _convert_more_text($posts)
     {
         foreach ($posts as $id => $post)
         {
