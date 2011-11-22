@@ -481,6 +481,7 @@ class Model_Posts extends Model_Database {
      */
     public function _convert_more_text($posts)
     {
+        $single = (count($posts) == 1);
         foreach ($posts as $id => $post)
         {
             // Create link
@@ -493,6 +494,10 @@ class Model_Posts extends Model_Database {
             {
                 $parts = explode($matches[0], $content, 2);
                 $parts = Arr::map('UTF8::trim', $parts);
+                if ( ! $single)
+                {
+                    $parts[0] = Wordpress_Format::prepare_text($parts[0]);
+                }
                 $posts[$id]['content'] = $parts;
             }
             else
