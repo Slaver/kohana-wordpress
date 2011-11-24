@@ -45,8 +45,15 @@ class Wordpress_Shortcodes {
 
     function parse($text)
     {
-        $regex = $this->regex($name);
-        return preg_replace_callback('/'.$regex.'/s', 'self::run', $text);
+        if ( ! empty($this->tags))
+        {
+            $regex = $this->regex($name);
+            return preg_replace_callback('/'.$regex.'/s', 'self::run', $text);
+        }
+        else
+        {
+            return $text;
+        }
     }
 
     /**
