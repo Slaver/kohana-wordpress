@@ -106,7 +106,8 @@ class Wordpress_Format {
         }
         $str = preg_replace("|\n</p>$|", '</p>', $str);
 
-        return $str;
+        //return $str;
+        return Wordpress_Shortcodes::instance()->parse($str);
     }
 
     /**
