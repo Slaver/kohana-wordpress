@@ -1,9 +1,11 @@
 <?php defined('SYSPATH') OR die('No direct access allowed.');
 
 /**
- * WordPress API for creating bbcode like tags or what WordPress calls
- * "shortcodes." The tag and attribute parsing or regular expression code is
- * based on the Textpattern tag parser.
+ * WordPress API for creating bbcode like tags or what WordPress calls "shortcodes".
+ * You can extend this class and add custom methods for parsing shortcodes:
+ *  1. Add somewhere `Wordpress_Shortcodes::instance()->add('shortcode_name');`
+ *  2. Create method `public function shortcode_name()`
+ *  3. Parse text `Wordpress_Shortcodes::instance()->parse($text);`
  *
  * @package   WordPress
  * @author    Viacheslav Radionov <radionov@gmail.com>
@@ -30,41 +32,55 @@ class Wordpress_Shortcodes {
 
     public $tags = array();
 
-    function add($name)
+    /**
+     * Adds new shortcode:
+     * Wordpress_Shortcodes::instance()->add('youtube');
+     * 
+     * @param mixed $name
+     */
+    public function add($name)
     {
         $this->tags[] = $name;
     }
 
-    function regex($name)
+    /**
+     * Parse text with shortcodes:
+     * Wordpress_Shortcodes::instance()->parse($text)
+     * 
+     * @param mixed $text
+     * @return mixed
+     */
+    public function parse($text)
     {
-        $tagnames = array_values($this->tags);
+        if ( ! empty($this->tags))
+        {
+            $regex = $this->_regex();
+            return preg_replace_callback('/'.$regex.'/s', 'self::_run', $text);
+        }
+
+        return $text;
+    }
+
+    /**
+     * Creates regular expression for parsing shortcodes in text
+     * 
+     * @return string
+     */
+    protected function _regex()
+    {
+        $tagnames  = array_values($this->tags);
         $tagregexp = join('|', array_map('preg_quote', $tagnames));
 
         return '(.?)\[('.$tagregexp.')\b(.*?)(?:(\/))?\](?:(.+?)\[\/\2\])?(.?)';
     }
 
-    function parse($text)
-    {
-        if ( ! empty($this->tags))
-        {
-            $regex = $this->regex($name);
-            return preg_replace_callback('/'.$regex.'/s', 'self::run', $text);
-        }
-        else
-        {
-            return $text;
-        }
-    }
-
     /**
-     * $m[0] — строка до парсинга
-     * $m[1] — текст до тэга
-     * $m[2] — shortcode
-     *
-     * @param type $m
-     * @return type 
+     * Runs parsing and calls methods for showing the result
+     * 
+     * @param mixed $m
+     * @return string
      */
-    public static function run($m)
+    protected static function _run($m)
     {
         if ($m[1] == '[' && $m[6] == ']')
         {
@@ -72,23 +88,23 @@ class Wordpress_Shortcodes {
         }
 
         $tag = $m[2];
-        $attr = self::atts($m[3]);
+        $attr = self::_atts($m[3]);
 
         if (isset($m[5]))
         {
-            // enclosing tag - extra parameter
-            return $m[1] . Shortcodes::$tag($attr, $m[5], $tag) . $m[6];
-            //return $m[1] . call_user_func( $shortcode_tags[$tag], $attr, $m[5], $tag ) . $m[6];
-            //var_dump($m[1] . $shortcode_tags, $tag, $attr, $m[5], $tag  . $m[6] );
-        } else {
-            // self-closing tag
-            return $m[1] . Shortcodes::$tag($attr, NULL, $tag) . $m[6];
-            //return $m[1] . call_user_func( $shortcode_tags[$tag], $attr, NULL,  $tag ) . $m[6];
-            //var_dump( $m[1] . $shortcode_tags, $tag, $attr, NULL,  $tag . $m[6] );
+            return $m[1].self::$tag($attr, $m[5], $tag).$m[6];
         }
+
+        return $m[1].self::$tag($attr, NULL, $tag).$m[6];
     }
 
-    public static function atts($text)
+    /**
+     * Parse the attributes of shortcode
+     * 
+     * @param mixed $text
+     * @return string
+     */
+    protected static function _atts($text)
     {
         $atts = array();
         $pattern = '/(\w+)\s*=\s*"([^"]*)"(?:\s|$)|(\w+)\s*=\s*\'([^\']*)\'(?:\s|$)|(\w+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|(\S+)(?:\s|$)/';
@@ -114,6 +130,7 @@ class Wordpress_Shortcodes {
         {
             $atts = ltrim($text);
         }
+
         return $atts;
     }
 }

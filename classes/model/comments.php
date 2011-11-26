@@ -65,7 +65,7 @@ class Model_Comments extends Model_Database {
      * @return array
      */
     public function get_comment($comment_id = FALSE)
-    {        
+    {
         if ($comment_id)
         {
             return DB::select()
