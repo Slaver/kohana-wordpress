@@ -37,15 +37,19 @@ class Model_Taxonomy extends Model_Database {
             if ($value['taxonomy'] == 'category')
             {
                 $return[$value['object_id']]['category'][] = array(
+                    'id'    => $value['term_id'],
                     'name'  => $value['name'],
                     'slug'  => $value['slug'],
+                    'link'  => html::anchor('/category/'.$value['slug'], $value['name']),
                 );
             }
             elseif ($value['taxonomy'] == 'post_tag')
             {
                 $return[$value['object_id']]['tags'][] = array(
+                    'id'    => $value['term_id'],
                     'name'  => $value['name'],
                     'slug'  => $value['slug'],
+                    'link'  => html::anchor('/tag/'.$value['slug'], $value['name']),
                 );
             }
         }

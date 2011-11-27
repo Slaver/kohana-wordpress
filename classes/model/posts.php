@@ -145,7 +145,7 @@ class Model_Posts extends Model_Database {
         {
             $sticky = (int)$sticky;
             $sticky_array = unserialize(Wordpress_Options::instance()->get_option('sticky_posts'));
-            krsort($sticky_array);
+            arsort($sticky_array);
 
             $sticky_posts = array_slice($sticky_array, 0, $sticky);
             $sticky_order = DB::expr('FIELD('.$this->_db->table_prefix().'posts.ID, '.implode(',', $sticky_posts).')');
@@ -358,6 +358,7 @@ class Model_Posts extends Model_Database {
      */
     public function get_post_meta($posts = array())
     {
+        $return = array();
         $post_id = array_keys($posts);
 
         $meta = DB::select('post_id', 'meta_key', 'meta_value')
@@ -392,7 +393,7 @@ class Model_Posts extends Model_Database {
 
         foreach ($thumbs as $id => $value)
         {
-            $files[$value['ID']]['attach'] = unserialize($value['meta_value']);
+            $files[$value['ID']]['attach'] = @unserialize($value['meta_value']);
             $files[$value['ID']]['content'] = array(
                 'post_content' => $value['post_content'],
                 'post_title' => $value['post_title'],
