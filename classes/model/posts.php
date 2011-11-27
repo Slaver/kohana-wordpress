@@ -123,6 +123,7 @@ class Model_Posts extends Model_Database {
             'exclude'         => NULL,
             'meta_key'        => NULL,
             'meta_value'      => NULL,
+            'meta_compare'    => '=',
             'post_type'       => 'post',
             'post_mime_type'  => NULL,
             'post_parent'     => NULL,
@@ -183,7 +184,7 @@ class Model_Posts extends Model_Database {
 
             if ( ! empty($meta_value))
             {
-                $query->and_where('postmeta.meta_value', '=', $meta_value);
+                $query->and_where('postmeta.meta_value', $meta_compare, $meta_value);
             }
             else
             {
@@ -458,7 +459,11 @@ class Model_Posts extends Model_Database {
         $url = str_replace("%postname%", $post_data['post_name'], $url);
         $url = str_replace("%post_id%", $post_data['ID'], $url);
 
-        if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
+        if ( ! empty($post_data['post_type']) && ! in_array($post_data['post_type'], array('post', 'page')))
+        {
+            $url = str_replace("%category%", $post_data['post_type'], $url);
+        }
+        else if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
         {
             $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
         }

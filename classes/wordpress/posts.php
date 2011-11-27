@@ -85,7 +85,10 @@ class Wordpress_Posts {
             'search'        => $this->search,
             'id'            => $this->id,
             'page'          => $this->page,
-            'post_type'     => 'post'
+            'post_type'     => 'post',
+            'meta_key'      => NULL,
+            'meta_value'    => NULL,
+            'meta_compare'  => NULL,
         );
         $args = Arr::overwrite($default, $args);
 
@@ -97,9 +100,9 @@ class Wordpress_Posts {
      *
      * @return array
      */
-    public function get_post($id)
+    public function get_post($id, $type = 'post')
     {
-        return $this->posts->get_post($this->id);
+        return $this->posts->get_post($this->id, $type);
     }
 
     /**
