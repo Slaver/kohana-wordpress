@@ -13,8 +13,13 @@ class Wordpress_Tools {
      * @param mixed $local
      * @return string
      */
-    public static function get_post_thumbnail($post = array(), $size = 'post-thumbnail', $alt = NULL, $select = 0, $grayscale = TRUE, $local = TRUE)
+    public static function get_post_thumbnail($post = array(), $size = 'post-thumbnail', $html = TRUE, $alt = NULL, $select = 0, $grayscale = TRUE, $local = TRUE)
     {
+        if ($size === 'post-thumbnail')
+        {
+            $size = 'thumbnail';
+        }
+
         // Images sizes
         switch ($size)
         {
@@ -42,11 +47,11 @@ class Wordpress_Tools {
                 {
                     $image = Text::reduce_slashes($image_root.'/'.$image);
 
-                    return html::image($image, array(
+                    return ($html) ? html::image($image, array(
                         'width'  => Arr::path($post, 'thumb.attach.width'),
                         'height' => Arr::path($post, 'thumb.attach.height'),
                         'alt'    => ( ! empty($alt)) ? $alt : Arr::path($post, 'thumb.content.post_title'),
-                    ));
+                    )) : $image;
                 }
             }
 
@@ -59,11 +64,11 @@ class Wordpress_Tools {
             {
                 $image = Text::reduce_slashes($file_path.$image);
 
-                return html::image($image, array(
+                return ($html) ? html::image($image, array(
                     'width'  => Arr::path($post, 'thumb.attach.sizes.'.$size.'.width'),
                     'height' => Arr::path($post, 'thumb.attach.sizes.'.$size.'.height'),
                     'alt'    => ( ! empty($alt)) ? $alt : Arr::path($post, 'thumb.content.post_title'),
-                ));
+                )) : $image;
             }
         }
         else if ( ! empty($post['post_content']))
@@ -116,11 +121,13 @@ class Wordpress_Tools {
                             }
                         }
 
-                        return html::image($tmp_dir.'/'.$tmp_name, array(
+                        $image = $tmp_dir.'/'.$tmp_name;
+
+                        return ($html) ? html::image($image, array(
                             'width'  => $sizes[0],
                             'height' => $sizes[1],
                             'alt'    => ( ! empty($alt)) ? $alt : NULL,
-                        ));
+                        )) : $image;
                     }
                 }
             }

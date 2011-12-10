@@ -215,25 +215,8 @@ class Wordpress_Posts {
         return $this->comments->add_comment($input, $user);
     }
 
-    /**
-     * Get last comments
-     *
-     * @param  numeric $number
-     * @return array 
-     */
-    public function get_last_comments($number = 5)
+    public function get_term($id)
     {
-        $comments = $this->comments->get_comments(FALSE, $number);
-        if ( ! empty($comments))
-        {
-            $str = $this->posts->get_permalink_structure();
-            foreach ($comments as $k => $comment)
-            {
-                $data[$k] = $comment;
-                $data[$k]['link'] = $this->get_link($str, $comment) . '#comment_' . $comment['comment_ID'];
-            }
-            return $data;
-        }
+        return $this->posts->taxonomy->get_term($id);
     }
-
 }

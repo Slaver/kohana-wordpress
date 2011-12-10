@@ -75,4 +75,33 @@ class Model_Taxonomy extends Model_Database {
                 ->execute()->as_array();
         }
     }
+
+    /**
+     * Get term information
+     *
+     * @param  string $type
+     * @return array
+     */
+    public function get_term($id)
+    {
+        if ( ! empty($id))
+        {
+            $query = DB::select()
+                ->from('terms');
+
+            if (is_numeric($id))
+            {
+                $query->where('term_id', '=', $id);
+            }
+            else
+            {
+                $query->where('slug', '=', $id);
+            }
+
+            return $query
+                ->join('term_taxonomy', 'INNER')
+                    ->using('term_id')
+                ->execute()->current();
+        }
+    }
 }
