@@ -28,12 +28,12 @@ class Wordpress_Posts {
         return Wordpress::$_instance;
     }
 
-    protected $posts = FALSE;
-    protected $comments = FALSE;
+    public $posts = FALSE;
+    public $comments = FALSE;
 
-    protected $year = FALSE;
-    protected $month = FALSE;
-    protected $day = FALSE;
+    public $year = FALSE;
+    public $month = FALSE;
+    public $day = FALSE;
 
     public $id = FALSE;
     public $numberposts = 10;
@@ -42,8 +42,8 @@ class Wordpress_Posts {
     public $taxonomy_type = NULL;
     public $taxonomy = array();
 
-    protected $search = FALSE;
-    protected $page = 1;
+    public $search = FALSE;
+    public $page = 1;
 
     /**
      * Constructor
@@ -102,7 +102,7 @@ class Wordpress_Posts {
      */
     public function get_post($id, $type = 'post')
     {
-        return $this->posts->get_post($this->id, $type);
+        return $this->posts->get_post($id, $type);
     }
 
     /**
