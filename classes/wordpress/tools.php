@@ -51,7 +51,7 @@ class Wordpress_Tools {
                         'width'  => Arr::path($post, 'thumb.attach.width'),
                         'height' => Arr::path($post, 'thumb.attach.height'),
                         'alt'    => ( ! empty($alt)) ? $alt : Arr::path($post, 'thumb.content.post_title'),
-                    )) : $image;
+                    )) : URL::site($image, 'http');
                 }
             }
 
@@ -68,7 +68,7 @@ class Wordpress_Tools {
                     'width'  => Arr::path($post, 'thumb.attach.sizes.'.$size.'.width'),
                     'height' => Arr::path($post, 'thumb.attach.sizes.'.$size.'.height'),
                     'alt'    => ( ! empty($alt)) ? $alt : Arr::path($post, 'thumb.content.post_title'),
-                )) : $image;
+                )) : URL::site($image, 'http');
             }
         }
         else if ( ! empty($post['post_content']))
@@ -127,7 +127,7 @@ class Wordpress_Tools {
                             'width'  => $sizes[0],
                             'height' => $sizes[1],
                             'alt'    => ( ! empty($alt)) ? $alt : NULL,
-                        )) : $image;
+                        )) : URL::site($image, 'http');
                     }
                 }
             }
