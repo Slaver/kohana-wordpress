@@ -218,8 +218,10 @@ class Wordpress_Auth {
             {
                 $auth = $this->model->get_user($id);
 
-                // @TODO Send mail about registration
-                return $this->complete_login($auth, TRUE);
+                if ($this->complete_login($auth, TRUE))
+                {
+                    return $data;
+                }
             }
         }
         return FALSE;

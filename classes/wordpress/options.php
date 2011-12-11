@@ -62,8 +62,8 @@ class Wordpress_Options {
      * @param  mixed $id
      * @return array
      */
-    public function get_option($id)
+    public function get_option($id, $default = NULL)
     {
-        return Arr::get($this->options, $id);
+        return Arr::get($this->options, $id, $default);
     }
 }
