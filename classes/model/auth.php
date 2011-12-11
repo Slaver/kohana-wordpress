@@ -19,7 +19,7 @@ class Model_Auth extends Model_Database {
      */
     public function get_user($value, $field = '')
     {
-        if (preg_match('/^[a-z0-9\.\-_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
+        if (preg_match('/^[a-z0-9\.\-+_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
         {
             $field = 'email';
         }
