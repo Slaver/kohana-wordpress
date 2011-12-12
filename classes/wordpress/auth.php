@@ -122,7 +122,7 @@ class Wordpress_Auth {
      */
     public function is_user_exist($value)
     {
-        if (preg_match('/^[a-z0-9\.\-_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
+        if (preg_match('/^[a-z0-9\.\-+_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
         {
             return (bool)$this->model->is_mail_exist($value);
         }
@@ -218,8 +218,10 @@ class Wordpress_Auth {
             {
                 $auth = $this->model->get_user($id);
 
-                // @TODO Send mail about registration
-                return $this->complete_login($auth, TRUE);
+                if ($this->complete_login($auth, TRUE))
+                {
+                    return $data;
+                }
             }
         }
         return FALSE;

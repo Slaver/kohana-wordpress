@@ -88,7 +88,6 @@ class Model_Comments extends Model_Database {
         if ( ! empty($user) && ! empty($input))
         {
             $post_id = $input['comment_post_id'];
-            $subscribe = (Arr::get($input, 'subscribe') == 'subscribe');
 
             $comment = array(
                 'comment_post_ID'   => $post_id,
@@ -103,7 +102,6 @@ class Model_Comments extends Model_Database {
                 'comment_approved'  => Arr::get($input, 'comment_approved', 0),
                 'comment_agent'     => Arr::get($_SERVER, 'HTTP_USER_AGENT'),
                 'comment_author_IP' => Arr::get($_SERVER, 'SERVER_ADDR'),
-                'comment_subscribe' => $subscribe,
             );
 
             list($comment_id, ) = DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute();
