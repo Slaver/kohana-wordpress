@@ -19,7 +19,7 @@ class Model_Auth extends Model_Database {
      */
     public function get_user($value, $field = '')
     {
-        if (preg_match('/^[a-z0-9\.\-_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
+        if (preg_match('/^[a-z0-9\.\-+_]+@[a-z0-9\-_]+\.([a-z0-9\-_]+\.)*?[a-z]+$/is', $value))
         {
             $field = 'email';
         }
@@ -102,10 +102,10 @@ class Model_Auth extends Model_Database {
             }
         }
 
-        if (empty($userdata['display_name']))
+        /*if (empty($userdata['display_name']))
         {
             $userdata['display_name'] = $userdata['user_login'];
-        }
+        }*/
 
         // Default meta-data
         $userdata['wp_user_level'] = 0;
@@ -151,7 +151,7 @@ class Model_Auth extends Model_Database {
             'user_email'        => Arr::get($data, 'user_email', ''),
             'user_url'          => Arr::get($data, 'user_url', ''),
             'user_registered'   => gmdate('Y-m-d H:i:s'),
-            'display_name'      => $data['display_name'],
+            'display_name'      => Arr::get($data, 'display_name', ''),
         );
 
         $insert = DB::insert('users', array_keys($new_data))
@@ -259,6 +259,8 @@ class Model_Auth extends Model_Database {
     protected function _gen_nickname($input)
     {
         if (isset($input['user_email']) AND ! empty($input['user_email']) AND preg_match('/^(.+)\@/i', $input['user_email'], $nickname))
+        {
             return $nickname[1];
+        }
     }
 }

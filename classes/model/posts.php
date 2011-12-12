@@ -433,7 +433,7 @@ class Model_Posts extends Model_Database {
      */
     public function _get_permalink_structure()
     {
-        return Wordpress_Options::instance()->get_option('permalink_structure');
+        return Wordpress_Options::instance()->get_option('permalink_structure', '/%category%/%post_id%');
     }
 
     /**
@@ -445,7 +445,6 @@ class Model_Posts extends Model_Database {
      */
     public function _get_permalink($post_data)
     {
-        //'/%year%/%monthnum%/%day%/%postname%'
         $permalink_structure = $this->_get_permalink_structure();
 
         $date = strtotime($post_data['post_date']);
@@ -465,7 +464,15 @@ class Model_Posts extends Model_Database {
         }
         else if ( ! empty($post_data['taxonomy']['category'][0]['slug']))
         {
-            $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
+            if (Wordpress_Taxonomy::instance('category')->has_parent($post_data['taxonomy']['category'][0]['id']))
+            {
+                $parent_category = Wordpress_Taxonomy::instance('category')->get_parent($post_data['taxonomy']['category'][0]['id']);
+                $url = str_replace("%category%", $parent_category['data'][1].'/'.$post_data['taxonomy']['category'][0]['slug'], $url);
+            }
+            else
+            {
+                $url = str_replace("%category%", $post_data['taxonomy']['category'][0]['slug'], $url);
+            }
         }
 
         return $url;

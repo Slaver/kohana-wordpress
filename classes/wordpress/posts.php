@@ -28,12 +28,12 @@ class Wordpress_Posts {
         return Wordpress::$_instance;
     }
 
-    protected $posts = FALSE;
-    protected $comments = FALSE;
+    public $posts = FALSE;
+    public $comments = FALSE;
 
-    protected $year = FALSE;
-    protected $month = FALSE;
-    protected $day = FALSE;
+    public $year = FALSE;
+    public $month = FALSE;
+    public $day = FALSE;
 
     public $id = FALSE;
     public $numberposts = 10;
@@ -42,8 +42,8 @@ class Wordpress_Posts {
     public $taxonomy_type = NULL;
     public $taxonomy = array();
 
-    protected $search = FALSE;
-    protected $page = 1;
+    public $search = FALSE;
+    public $page = 1;
 
     /**
      * Constructor
@@ -102,7 +102,7 @@ class Wordpress_Posts {
      */
     public function get_post($id, $type = 'post')
     {
-        return $this->posts->get_post($this->id, $type);
+        return $this->posts->get_post($id, $type);
     }
 
     /**
@@ -215,25 +215,8 @@ class Wordpress_Posts {
         return $this->comments->add_comment($input, $user);
     }
 
-    /**
-     * Get last comments
-     *
-     * @param  numeric $number
-     * @return array 
-     */
-    public function get_last_comments($number = 5)
+    public function get_term($id)
     {
-        $comments = $this->comments->get_comments(FALSE, $number);
-        if ( ! empty($comments))
-        {
-            $str = $this->posts->get_permalink_structure();
-            foreach ($comments as $k => $comment)
-            {
-                $data[$k] = $comment;
-                $data[$k]['link'] = $this->get_link($str, $comment) . '#comment_' . $comment['comment_ID'];
-            }
-            return $data;
-        }
+        return $this->posts->taxonomy->get_term($id);
     }
-
 }
