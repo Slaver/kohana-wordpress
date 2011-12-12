@@ -100,9 +100,9 @@ class Wordpress_Posts {
      *
      * @return array
      */
-    public function get_post($id, $type = 'post')
+    public function get_post($id, $type = 'post', $status = 'publish')
     {
-        return $this->posts->get_post($id, $type);
+        return $this->posts->get_post($id, $type, $status);
     }
 
     /**

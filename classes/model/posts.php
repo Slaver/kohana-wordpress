@@ -28,7 +28,7 @@ class Model_Posts extends Model_Database {
      * @param  string $type (post|page|attachment)
      * @return array
      */
-    public function get_post($id = NULL, $type = 'post')
+    public function get_post($id = NULL, $type = 'post', $status = 'publish')
     {
         if ($id)
         {
@@ -37,7 +37,7 @@ class Model_Posts extends Model_Database {
                 ->join('users', 'LEFT')
                     ->on('posts.post_author', '=', 'users.ID')
                 ->and_where('post_type', '=', $type)
-                ->and_where('post_status', '=', 'publish')
+                ->and_where('post_status', '=', $status)
                 ->group_by('posts.ID')
                 ->order_by('posts.post_date', 'DESC')
                 ->limit(1);
