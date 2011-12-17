@@ -101,7 +101,7 @@ class Model_Comments extends Model_Database {
                 'comment_parent'    => Arr::get($input, 'comment_parent', 0),
                 'comment_approved'  => Arr::get($input, 'comment_approved', 0),
                 'comment_agent'     => Arr::get($_SERVER, 'HTTP_USER_AGENT'),
-                'comment_author_IP' => Arr::get($_SERVER, 'SERVER_ADDR'),
+                'comment_author_IP' => Request::$client_ip,
             );
 
             list($comment_id, ) = DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute();
