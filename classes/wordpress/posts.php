@@ -122,7 +122,7 @@ class Wordpress_Posts {
      */
     public function get_sticky($number = 5)
     {
-        return $this->posts->get_posts(array('sticky' => $number, 'exclude' => $this->exclude));
+        return $this->posts->get_posts(array('sticky' => $number, 'exclude' => $this->exclude), FALSE);
     }
 
     /**

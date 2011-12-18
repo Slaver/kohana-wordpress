@@ -149,7 +149,7 @@ class Model_Posts extends Model_Database {
             arsort($sticky_array);
 
             $sticky_posts = array_slice($sticky_array, 0, $sticky);
-            $sticky_order = DB::expr('FIELD('.$this->_db->table_prefix().'posts.ID, '.implode(',', $sticky_posts).')');
+            $sticky_order = DB::expr('FIELD('.$this->_db->table_prefix().'posts.post_date, '.implode(',', $sticky_posts).')');
             $query
                 ->and_where('posts.ID', 'IN', $sticky_posts)
                 ->order_by($sticky_order);

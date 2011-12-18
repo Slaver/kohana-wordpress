@@ -35,6 +35,11 @@ class Model_Comments extends Model_Database {
         $comments = $query->limit($limit)->execute()->as_array('comment_ID');
         $posters = array_unique(Arr::pluck($comments, 'user_id'));
 
+        if (in_array('0', $posters))
+        {
+            $posters = array_diff($posters, array('0'));
+        }
+
         if ($posters)
         {
             $users = DB::select()->from('users')
