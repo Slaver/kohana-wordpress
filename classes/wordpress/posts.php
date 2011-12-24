@@ -89,6 +89,7 @@ class Wordpress_Posts {
             'meta_key'      => NULL,
             'meta_value'    => NULL,
             'meta_compare'  => NULL,
+            'post_author'   => NULL,
         );
         $args = Arr::overwrite($default, $args);
 

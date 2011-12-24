@@ -13,8 +13,9 @@ class Wordpress_Format {
 
     public static function prepare_text($content)
     {
-        $content = preg_replace('/<a href=\"(.*?)\">(.*?)<\/a>/', "\\2", $content);
-        $content = preg_replace('/<p>(.*?)<\/p>/', "\\2", $content);
+        //$content = preg_replace('/<a href=\"(.*?)\">(.*?)<\/a>/', "\\2", $content);
+        //$content = preg_replace('/<p>(.*?)<\/p>/', "\\2", $content);
+        $content = strip_tags($content, '<strong><b><em><i>');
 
         return $content;
     }

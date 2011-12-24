@@ -124,6 +124,7 @@ class Model_Posts extends Model_Database {
             'meta_key'        => NULL,
             'meta_value'      => NULL,
             'meta_compare'    => '=',
+            'post_author'     => NULL,
             'post_type'       => 'post',
             'post_mime_type'  => NULL,
             'post_parent'     => NULL,
@@ -173,6 +174,11 @@ class Model_Posts extends Model_Database {
         if ( ! empty($post_parent))
         {
             $query->and_where('posts.post_parent', '=', $post_parent);
+        }
+
+        if ( ! empty($post_author))
+        {
+            $query->and_where('users.user_nicename', '=', $post_author);
         }
 
         if ( ! empty($meta_key))
