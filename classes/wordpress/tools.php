@@ -40,6 +40,7 @@ class Wordpress_Tools {
         if ( ! empty($post['thumb']['attach']))
         {
             // Default image (full)
+            //  OR $image_by_size === NULL
             if ($size === 'full')
             {
                 $image = Arr::path($post, 'thumb.attach.file');
@@ -58,11 +59,11 @@ class Wordpress_Tools {
             // Selected image
             $image_url = explode('/', $post['thumb']['attach']['file']);
             $file_path = $image_root.'/'.str_replace(end($image_url), '', $post['thumb']['attach']['file']);
+            $image_by_size = Arr::path($post, 'thumb.attach.sizes.'.$size.'.file');
 
-            $image = Arr::path($post, 'thumb.attach.sizes.'.$size.'.file');
-            if ($image !== NULL)
+            if ($image_by_size !== NULL)
             {
-                $image = Text::reduce_slashes($file_path.$image);
+                $image = Text::reduce_slashes($file_path.$image_by_size);
 
                 return ($html) ? html::image($image, array(
                     'width'  => Arr::path($post, 'thumb.attach.sizes.'.$size.'.width'),
