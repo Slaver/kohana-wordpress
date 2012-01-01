@@ -408,7 +408,12 @@ class Model_Posts extends Model_Database {
         }
         foreach ($posts as $id => $post)
         {
-            $return[$id] = $files[$post];
+            $post = (int)$post;
+
+            if ( ! empty($files[$post]))
+            {
+                $return[$id] = $files[$post];
+            }
         }
 
         return $return;
