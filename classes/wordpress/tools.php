@@ -79,7 +79,7 @@ class Wordpress_Tools {
             if ($local)
             {
                 $home = addcslashes(Wordpress_Options::instance()->get_option('siteurl'), '.-/');
-                $home = 'http:\/\/ultra\-music\.com\/';
+                //$home = 'http:\/\/ultra\-music\.com\/';
                 $pattern = "/\<\s*img.*src\s*=\s*[\"\']?(?:$home|\/)([^\"\'\ >]*)[\"\']?.*\/\>/i";
             }
 
@@ -90,7 +90,7 @@ class Wordpress_Tools {
             if ($count > 0)
             {
                 $select = (isset($select) && is_numeric($select)) ? $select : rand(0, $count);
-                $image_url  = $images[1][$select];
+                $image_url  = ltrim($images[1][$select], '/');
                 $image_path = realpath($image_url);
 
                 if ( ! empty($image_url))

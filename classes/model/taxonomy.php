@@ -33,25 +33,19 @@ class Model_Taxonomy extends Model_Database {
 
         foreach ($taxonomy as $id=>$value)
         {
-            // @TODO nested categories
-            if ($value['taxonomy'] == 'category')
+            $link = html::anchor('/'.$value['taxonomy'].'/'.$value['slug'], $value['name']);
+            if ($value['taxonomy'] === 'post_tag')
             {
-                $return[$value['object_id']]['category'][] = array(
-                    'id'    => $value['term_id'],
-                    'name'  => $value['name'],
-                    'slug'  => $value['slug'],
-                    'link'  => html::anchor('/category/'.$value['slug'], $value['name']),
-                );
+                $link = html::anchor('/tag/'.$value['slug'], $value['name']);
             }
-            elseif ($value['taxonomy'] == 'post_tag')
-            {
-                $return[$value['object_id']]['tags'][] = array(
-                    'id'    => $value['term_id'],
-                    'name'  => $value['name'],
-                    'slug'  => $value['slug'],
-                    'link'  => html::anchor('/tag/'.$value['slug'], $value['name']),
-                );
-            }
+
+            $return[$value['object_id']][$value['taxonomy']][] = array(
+                'id'    => $value['term_id'],
+                'name'  => $value['name'],
+                'slug'  => $value['slug'],
+                'link'  => $link,
+                'description' => $value['description'],
+            );
         }
 
         return $return;
