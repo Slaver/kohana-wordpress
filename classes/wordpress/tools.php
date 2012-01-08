@@ -40,7 +40,6 @@ class Wordpress_Tools {
         if ( ! empty($post['thumb']['attach']))
         {
             // Default image (full)
-            //  OR $image_by_size === NULL
             if ($size === 'full')
             {
                 $image = Arr::path($post, 'thumb.attach.file');
