@@ -42,7 +42,7 @@ class Model_Posts extends Model_Database {
                 ->order_by('posts.post_date', 'DESC')
                 ->limit(1);
 
-            if (is_numeric($id))
+            if (is_numeric($id) && ! in_array('page', $type))
             {
                 $query->and_where('posts.ID', '=', $id);
             }
