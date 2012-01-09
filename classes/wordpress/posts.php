@@ -103,6 +103,11 @@ class Wordpress_Posts {
      */
     public function get_post($id, $type = 'post', $status = array('publish'))
     {
+        if ( ! is_array($type))
+        {
+            $type = (array)$type;
+        }
+
         return $this->posts->get_post($id, $type, $status);
     }
 
@@ -113,7 +118,7 @@ class Wordpress_Posts {
      */
     public function get_page($id)
     {
-        return $this->posts->get_post($id, 'page');
+        return $this->posts->get_post($id, array('page'));
     }
 
     /**
@@ -165,8 +170,11 @@ class Wordpress_Posts {
             foreach ($comments as $key=>$comment)
             {
                 $taxonomy = $this->posts->taxonomy->get_post_taxonomy(array($comment['comment_post_ID'] => $comment));
-                $comment['taxonomy'] = $taxonomy[$comment['comment_post_ID']];
-                $comments[$key]['link'] = $this->posts->_get_permalink($comment);
+                if ( ! empty($taxonomy))
+                {
+                    $comment['taxonomy'] = $taxonomy[$comment['comment_post_ID']];
+                    $comments[$key]['link'] = $this->posts->_get_permalink($comment);
+                }
             }
         }
 
