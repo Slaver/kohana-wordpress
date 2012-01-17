@@ -32,7 +32,7 @@ class Model_Posts extends Model_Database {
     {
         if ($id)
         {
-            $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
+            $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename', 'users.user_email')
                 ->from('posts')
                 ->join('users', 'LEFT')
                     ->on('posts.post_author', '=', 'users.ID')
@@ -136,7 +136,7 @@ class Model_Posts extends Model_Database {
         );
         extract(Arr::overwrite($default, $args));
 
-        $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename')
+        $query = DB::select('posts.*', 'users.display_name', 'users.user_nicename', 'users.user_email')
             ->from('posts')
             ->join('users', 'LEFT')
                 ->on('posts.post_author', '=', 'users.ID')
