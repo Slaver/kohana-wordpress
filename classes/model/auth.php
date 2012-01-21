@@ -180,6 +180,7 @@ class Model_Auth extends Model_Database {
     public function update_user($id, $data)
     {
         $default = array('user_login', 'user_pass', 'user_nicename', 'user_email', 'user_url', 'display_name');
+
         foreach ($data as $field => $value)
         {
             if (in_array($field, $default))
