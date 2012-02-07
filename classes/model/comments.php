@@ -111,14 +111,14 @@ class Model_Comments extends Model_Database {
 
             list($comment_id, ) = DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute();
 
-            if ($comment_id)
+            if ($comment_id && ! empty($input['comment_approved']) && $input['comment_approved'] !== 'spam')
             {
                 DB::update('posts')
                     ->set(array('comment_count' => DB::expr('comment_count + 1')))
                     ->where('ID', '=', $post_id)
                     ->execute();
-                return $comment_id;
             }
+            return $comment_id;
         }
     }
 
