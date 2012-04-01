@@ -344,16 +344,19 @@ class Model_Posts extends Model_Database {
 
         $posts = $query->limit($limit)->execute()->as_array('ID');
 
-        // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
-        $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
-        foreach ($taxonomy as $id => $values)
+        if ( ! empty($posts))
         {
-            $posts[$id]['taxonomy'] = $values;
+            // Retrieves all custom fields, taxonomy and thumbnails of a particular post or page
+            $taxonomy = $this->taxonomy->get_post_taxonomy($posts);
+            foreach ($taxonomy as $id => $values)
+            {
+                $posts[$id]['taxonomy'] = $values;
+            }
+
+            $posts = $this->_convert_more_text($posts);
+
+            return $posts;
         }
-
-        $posts = $this->_convert_more_text($posts);
-
-        return $posts;
     }
 
     /**

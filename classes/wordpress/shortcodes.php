@@ -34,7 +34,7 @@ class Wordpress_Shortcodes {
 
     /**
      * Adds new shortcode:
-     * Wordpress_Shortcodes::instance()->add('youtube');
+     * Wordpress_Shortcodes::instance()->add('');
      * 
      * @param mixed $name
      */
