@@ -63,7 +63,7 @@ class Wordpress_Posts {
         $this->taxonomy_type = Request::current()->param('taxonomy_type');
         $this->taxonomy = Request::current()->param('taxonomy');
         $this->search = Request::current()->param('q');
-        $this->page = Request::current()->param('page');
+        $this->page = ( ! empty($_GET['page'])) ? (int)$_GET['page'] : Request::current()->param('page', 1);
     }
 
     /**

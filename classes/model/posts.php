@@ -200,10 +200,37 @@ class Model_Posts extends Model_Database {
 
         if ( ! empty($search))
         {
-            $search = "%".$search."%";
-            $query
-            ->and_where('posts.post_title', 'LIKE', $search)
-            ->and_where('posts.post_content', 'LIKE', $search);
+            $query_p = array(Database::instance()->escape($search));
+
+            // ALTER TABLE `slaver_new`.`wp_posts` ADD FULLTEXT INDEX `post_content` (`post_content`(10));
+            if (require_once Kohana::find_file('vendor', 'lingua_stem_ru'))
+            {
+                $stemmer = new Lingua_Stem_Ru();
+                $words   = explode(' ', $search);
+                $query_p = array();
+                foreach ($words as $word)
+                {
+                    $word = Kohana::sanitize($word);
+                    if ( ! empty($word))
+                    {
+                        if ( ! strpos($word, '*'))
+                        {
+                            $every_word = $stemmer->stem_word($word);
+                            $query_p[]  = $every_word . (($every_word !== UTF8::strtolower($word)) ? '*' : '');
+                        }
+                        else
+                        {
+                            $query_p[] = Database::instance()->escape($word);
+                        }
+                    }
+                }
+            }
+
+            // Подготавливаем запрос для полнотекстового поиска
+            $query_m = DB::expr('MATCH(`post_title`,`post_content`)');
+            $query_a = DB::expr('AGAINST("'.implode(' ', $query_p).'" IN BOOLEAN MODE)');
+
+            $query->and_where($query_m, '', $query_a);
         }
 
         if ( ! empty($date))
