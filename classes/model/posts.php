@@ -245,7 +245,7 @@ class Model_Posts extends Model_Database {
 
             // Подготавливаем запрос для полнотекстового поиска
             $query_m = DB::expr('MATCH(`post_title`,`post_content`)');
-            $query_a = DB::expr('AGAINST("'.Database::instance()->escape(implode(' ', $query_p)).'" IN BOOLEAN MODE)');
+            $query_a = DB::expr('AGAINST('.Database::instance()->escape(implode(' ', $query_p)).' IN BOOLEAN MODE)');
 
             $query->and_where($query_m, '', $query_a);
         }
