@@ -200,7 +200,7 @@ class Model_Posts extends Model_Database {
 
         if ( ! empty($search))
         {
-            $query_p = array(Database::instance()->escape($search));
+            $query_p = array($search);
 
             // ALTER TABLE `wp_posts` ADD FULLTEXT INDEX `post_content` (`post_content`(10));
             if (require_once Kohana::find_file('vendor', 'lingua_stem_ru'))
@@ -208,27 +208,44 @@ class Model_Posts extends Model_Database {
                 $stemmer = new Lingua_Stem_Ru();
                 $words   = explode(' ', $search);
                 $query_p = array();
-                foreach ($words as $word)
+                $count   = count($words);
+
+                if ($count > 1)
                 {
-                    $word = Kohana::sanitize($word);
-                    if ( ! empty($word))
+                    foreach ($words as $word)
                     {
-                        if ( ! strpos($word, '*'))
+                        $word = Kohana::sanitize($word);
+                        if ( ! empty($word))
                         {
-                            $every_word = $stemmer->stem_word($word);
-                            $query_p[]  = $every_word . (($every_word !== UTF8::strtolower($word)) ? '*' : '');
+                            $query_p[] = '+'.UTF8::strtolower($word);
                         }
-                        else
+                    }
+                }
+                else
+                {
+                    foreach ($words as $word)
+                    {
+                        $word = Kohana::sanitize($word);
+                        if ( ! empty($word))
                         {
-                            $query_p[] = Database::instance()->escape($word);
+                            if ( ! strpos($word, '*'))
+                            {
+                                $every_word = $stemmer->stem_word($word);
+                                $query_p[]  = $every_word . (($every_word !== UTF8::strtolower($word)) ? '*' : '');
+                            }
+                            else
+                            {
+                                $query_p[] = Database::instance()->escape($word);
+                            }
                         }
                     }
                 }
             }
+            $query_p = str_replace(array('++', '**', '--', '~~'), array('+', '*', '-', '~'), $query_p);
 
             // Подготавливаем запрос для полнотекстового поиска
             $query_m = DB::expr('MATCH(`post_title`,`post_content`)');
-            $query_a = DB::expr('AGAINST("'.implode(' ', $query_p).'" IN BOOLEAN MODE)');
+            $query_a = DB::expr('AGAINST("'.Database::instance()->escape(implode(' ', $query_p)).'" IN BOOLEAN MODE)');
 
             $query->and_where($query_m, '', $query_a);
         }
