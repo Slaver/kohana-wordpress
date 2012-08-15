@@ -437,7 +437,9 @@ class Model_Posts extends Model_Database {
      */
     public function get_post_thumbs($posts = array())
     {
-        $thumbs = DB::select()
+		$return = array();
+
+		$thumbs = DB::select()
             ->from(array('posts', 'p'))
             ->join(array('postmeta', 'm'), 'LEFT')
                 ->on('p.ID', '=', 'm.post_id')
