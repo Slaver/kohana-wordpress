@@ -111,6 +111,30 @@ class Model_Comments extends Model_Database {
 
             list($comment_id, ) = DB::insert('comments', array_keys($comment))->values(array_values($comment))->execute();
 
+            $referer = NULL;
+            if ( ! empty($_COOKIE['__utmz']))
+            {
+                $refer = explode('utmcsr=', $_COOKIE['__utmz']);
+                $full  = explode('utmcct=', $_COOKIE['__utmz']);
+                if (count($refer) > 1) $refer = explode('|', $refer[1]);
+
+                if ( ! empty($full[1]) && $full[1] !== '/')
+                {
+                    $referer = addslashes($refer[0].$full[1]);
+                }
+                else
+                {
+                    $referer = addslashes($refer[0]);
+                }
+            }
+            $comment_meta = array(
+                'user_ip'      => Request::$client_ip,
+                'user_host'    => @gethostbyaddr(Request::$client_ip),
+                'user_referer' => $referer,
+                'user_browser' => Arr::get($_SERVER, 'HTTP_USER_AGENT'),
+            );
+            DB::insert('commentmeta', array('comment_id', 'meta_key', 'meta_value'))->values(array($comment_id, 'user_info', serialize($comment_meta)))->execute();
+
             if ($comment_id && ! empty($input['comment_approved']) && $input['comment_approved'] !== 'spam')
             {
                 DB::update('posts')
