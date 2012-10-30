@@ -201,8 +201,6 @@ class Model_Posts extends Model_Database {
         if ( ! empty($search))
         {
             $query_p = array($search);
-            Arr::recursive($query_p, 'trim');
-            Arr::recursive($query_p, 'strip_tags');
 
             // ALTER TABLE `wp_posts` ADD FULLTEXT INDEX `post_content` (`post_content`(10));
             if (require_once Kohana::find_file('vendor', 'lingua_stem_ru'))
@@ -439,7 +437,9 @@ class Model_Posts extends Model_Database {
      */
     public function get_post_thumbs($posts = array())
     {
-        $thumbs = DB::select()
+		$return = array();
+
+		$thumbs = DB::select()
             ->from(array('posts', 'p'))
             ->join(array('postmeta', 'm'), 'LEFT')
                 ->on('p.ID', '=', 'm.post_id')
