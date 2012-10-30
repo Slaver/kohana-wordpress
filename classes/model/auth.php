@@ -28,6 +28,9 @@ class Model_Auth extends Model_Database {
             case 'login':
                 $value = UTF8::strtolower(UTF8::clean($value));
                 $field = 'user_nicename'; break;
+            case 'display':
+                $value = UTF8::strtolower(UTF8::clean($value));
+                $field = 'display_name'; break;
             case 'email':
                 $field = 'user_email'; break;
             default:
@@ -47,8 +50,17 @@ class Model_Auth extends Model_Database {
                 ->where('user_id', '=', $user['ID'])
                 ->execute()->as_array();
 
-            foreach ($user_meta as $value)
+            $user_identities = DB::select()
+                ->from('users_identities')
+                ->where('user_id', '=', $user['ID'])
+                ->execute()
+                ->as_array('id', 'identity');
+
+            foreach ($user_meta as $value) {
                 $meta[$value['meta_key']] = $value['meta_value'];
+            }
+
+            $meta['identeties'] = $user_identities;
 
             return $user+$meta;
         }
@@ -64,7 +76,7 @@ class Model_Auth extends Model_Database {
     {
         $update = FALSE;
 
-        if ( ! empty($userdata['ID']) ) {
+        if ( ! empty($userdata['ID'])) {
             $id = $userdata['ID'];
             $update = TRUE;
         }
@@ -102,11 +114,6 @@ class Model_Auth extends Model_Database {
             }
         }
 
-        /*if (empty($userdata['display_name']))
-        {
-            $userdata['display_name'] = $userdata['user_login'];
-        }*/
-
         // Default meta-data
         $userdata['wp_user_level'] = 0;
         $userdata['wp_capabilities'] = serialize(array('subscriber' => 1));
@@ -117,7 +124,7 @@ class Model_Auth extends Model_Database {
         }
 
         // @TODO Merge accounts?
-        if ( ! $update && $id = $this->is_mail_exist($userdata['user_email']))
+        /*if ( ! $update && $id = $this->is_mail_exist($userdata['user_email']))
         {
             throw new Exception_Wordpress('This e-mail is already registered.');
         }
@@ -125,7 +132,7 @@ class Model_Auth extends Model_Database {
         if ( ! $update && $this->is_username_exist($userdata['user_login']))
         {
             throw new Exception_Wordpress('This username is already registered.');
-        }
+        }*/
 
         if ($update)
         {
@@ -183,16 +190,23 @@ class Model_Auth extends Model_Database {
 
         foreach ($data as $field => $value)
         {
-            if (in_array($field, $default))
+            if ( ! empty($value))
             {
-                DB::update('users')->set(array($field => $value))->where('ID', '=', $id)->execute();
-            }
-            else
-            {
-                if ( ! DB::update('usermeta')->set(array('meta_value' => $value))->where('user_id', '=', $id)->and_where('meta_key', '=', $field)->execute())
+                if (in_array($field, $default))
                 {
-                    DB::insert('usermeta', array('meta_key', 'meta_value', 'user_id'))
-                        ->values(array($field, $value, $id))->execute();
+                    DB::update('users')->set(array($field => $value))->where('ID', '=', $id)->execute();
+                }
+                else
+                {
+                    if (DB::select()->from('usermeta')->where('user_id', '=', $id)->and_where('meta_key', '=', $field)->execute()->current()) {
+                        DB::update('usermeta')
+                            ->set(array('meta_value' => $value))
+                            ->where('user_id', '=', $id)
+                            ->and_where('meta_key', '=', $field)->execute();
+                    } else {
+                        DB::insert('usermeta', array('meta_key', 'meta_value', 'user_id'))
+                            ->values(array($field, $value, $id))->execute();
+                    }
                 }
             }
         }
@@ -220,9 +234,9 @@ class Model_Auth extends Model_Database {
      * @param type $username
      * @return type 
      */
-    public function is_username_exist($username)
+    public function is_username_exist($username, $type = 'login')
     {
-        $userdata = self::get_user($username, 'login');
+        $userdata = self::get_user($username, $type);
 
         if ( ! empty($userdata['ID']))
         {
