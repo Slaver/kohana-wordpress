@@ -67,7 +67,7 @@ class Wordpress_Format {
         $str = $str . "\n"; // just to make things a little easier, pad the end
         $str = preg_replace('|<br />\s*<br />|', "\n\n", $str);
         // Space things out a little
-        $allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|option|form|map|area|blockquote|address|math|style|input|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+        $allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|option|form|map|area|blockquote|address|math|style|input|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary|label)';
         $str = preg_replace('!(<' . $allblocks . '[^>]*>)!', "\n$1", $str);
         $str = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $str);
         $str = str_replace(array("\r\n", "\r"), "\n", $str); // cross-platform newlines
