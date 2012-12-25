@@ -57,6 +57,14 @@ class Wordpress_Taxonomy {
     }
 
     /**
+     * List of taxonomies
+     */
+    public function get_all($parent = 0, $tree = TRUE)
+    {
+        return $this->tree->build($parent, $tree);
+    }
+
+    /**
      * Check if taxonomy has childs
      * 
      * @param  mixed $id

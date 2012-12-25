@@ -71,9 +71,9 @@ class Wordpress_Posts {
      *
      * @return array
      */
-    public function get_posts($args = array())
+    public function get_posts($args = array(), $pagination = TRUE)
     {
-        $offset = ( ! empty($this->page)) ? ($this->page * $this->numberposts - $this->numberposts) : 0;
+        $offset = ( ! empty($this->page) && $this->page != 1) ? ($this->page * $this->numberposts - $this->numberposts) : 0;
 
         $default = array(
             'numberposts'   => $this->numberposts,
@@ -93,7 +93,7 @@ class Wordpress_Posts {
         );
         $args = Arr::overwrite($default, $args);
 
-        return $this->posts->get_posts($args);
+        return $this->posts->get_posts($args, $pagination);
     }
 
     /**
@@ -151,6 +151,16 @@ class Wordpress_Posts {
     public function get_archives()
     {
         return $this->posts->get_archives();
+    }
+
+    /**
+     * Get taxonomy term
+     *
+     * @return array
+     */
+    public function get_term($id, $type = FALSE)
+    {
+        return $this->posts->taxonomy->get_term($id, $type);
     }
 
     /**
@@ -213,9 +223,19 @@ class Wordpress_Posts {
     }
 
     /**
+     * Approve comment
+     *
+     * @param numeric $comment_id
+     */
+    public function approve_comment($comment_id)
+    {
+        return $this->comments->approve_comment($comment_id);
+    }
+
+    /**
      * Add new comment
      * 
-     * @param  string $message
+     * @param  string $input
      * @param  array  $user
      * @return boolean
      */
@@ -224,8 +244,15 @@ class Wordpress_Posts {
         return $this->comments->add_comment($input, $user);
     }
 
-    public function get_term($id)
+    /**
+     * Check new comment
+     * 
+     * @param  string $input
+     * @param  array  $user
+     * @return boolean
+     */
+    public function check_comment($user)
     {
-        return $this->posts->taxonomy->get_term($id);
+        return $this->comments->check_comment($user);
     }
 }

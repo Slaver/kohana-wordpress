@@ -49,7 +49,7 @@ class Controller_Auth extends Controller {
                     $redirect_to = '/auth';
                 }
 
-                Request::factory()->redirect($redirect_to);
+                Controller::redirect($redirect_to);
             }
         }
     }
@@ -69,7 +69,7 @@ class Controller_Auth extends Controller {
             {
                 if (Wordpress_Auth::instance()->register($_POST['user_email']))
                 {
-                    Request::factory()->redirect('/auth/ok');
+                    Controller::redirect('/auth/ok');
                 }
             }
         }
@@ -79,7 +79,7 @@ class Controller_Auth extends Controller {
     {
         Wordpress_Auth::instance()->logout();
 
-        Request::factory()->redirect('/auth');
+        Controller::redirect('/auth');
     }
 
     public function action_ok()

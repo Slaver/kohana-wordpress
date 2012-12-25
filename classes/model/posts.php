@@ -277,11 +277,12 @@ class Model_Posts extends Model_Database {
             $taxonomy = (array)$taxonomy;
             foreach ($taxonomy as $tax)
             {
-                $taxonomy_array[] = Wordpress_Taxonomy::instance($taxonomy_type)->get_taxonomy_id($tax);
+                $taxonomy_array[] = (int)Wordpress_Taxonomy::instance($taxonomy_type)->get_taxonomy_id($tax);
 
                 if (Wordpress_Taxonomy::instance($taxonomy_type)->has_childs($tax))
                 {
-                    $taxonomy_array += Wordpress_Taxonomy::instance($taxonomy_type)->get_childs($tax);
+                    $taxonomy_childs = Wordpress_Taxonomy::instance($taxonomy_type)->get_childs($tax);
+                    $taxonomy_array  = Arr::merge($taxonomy_array, $taxonomy_childs);
                 }
             }
 
@@ -306,8 +307,8 @@ class Model_Posts extends Model_Database {
         {
             // Count all post by criteria for pagination
             $total_rows = count($posts);
-            if ($pagination)
-            {
+
+            if ($pagination) {
                 $total_rows = (int)$query->select(DB::expr('COUNT(*) as total_rows'))->limit(NULL)->offset(NULL)->execute()->get('total_rows');
             }
 

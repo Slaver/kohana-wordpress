@@ -99,15 +99,15 @@ class Wordpress_Tools {
                     {
                         $tmp_dir  = $image_root.'/cache';
                         $tmp_path = realpath($tmp_dir);
-                        if ( ! $tmp_path)
-                        {
-                            mkdir($image_root.'/cache', 0755);
-                        }
                         $tmp_name = substr(md5($image_url.'-'.$sizes[0].'-'.$sizes[1]), 0, 7).'.jpg';
                         $tmp_file = $tmp_path.'/'.$tmp_name;
 
                         if ( ! is_file($tmp_file))
                         {
+                            if ( ! $tmp_path)
+                            {
+                                mkdir($image_root.'/cache', 0755);
+                            }
                             if ($local && $image_path)
                             {
                                 $gen_image = Image::factory($image_path)->thumbnail($sizes[0], $sizes[1]);
@@ -123,6 +123,11 @@ class Wordpress_Tools {
 
                         $image = $tmp_dir.'/'.$tmp_name;
 
+                        if (strpos($image, '://') === FALSE) {
+                            // Add the base URL
+                            $image = URL::site($image, 'http');
+                        }
+
                         return ($html) ? html::image($image, array(
                             'width'  => $sizes[0],
                             'height' => $sizes[1],
@@ -131,6 +136,51 @@ class Wordpress_Tools {
                     }
                 }
             }
+        }
+    }
+
+    public static function resize($file, $width, $height, $path = FALSE, $name = FALSE) {
+        if ( ! empty($file)) {
+            $home = Wordpress_Options::instance()->get_option('siteurl').'/';
+            $file_path = realpath(str_replace($home, '', $file));
+
+            if ( ! empty($file_path)) {
+
+                $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+
+                if ( ! $name) {
+                    $name = md5($file.'-'.$width.'-'.$height).'.'.$ext;
+                } else {
+                    $name = $name.'.'.$ext;
+                }
+
+                if ( ! $path) {
+                    // Images path root
+                    $root = Wordpress_Options::instance()->get_option('upload_path');
+                    $tmp_dir  = $root.'/cache/';
+                    $tmp_path = realpath($tmp_dir);
+                    $dir  = $tmp_dir.'/'.substr($name, 0, 2).'/'.substr($name, 2, 4).'/';
+                    $path = $tmp_path.'/'.substr($name, 0, 2).'/'.substr($name, 2, 4).'/';
+                } else {
+                    $tmp_path = realpath($path);
+                    $dir  = $path.'/';
+                    $path = $tmp_path.'/';
+                }
+
+                if ( ! is_file($path.'/'.$name)) {
+                    if ( ! is_dir($path)) {
+                        mkdir($path, 0755, TRUE);
+                    }
+
+                    Image::factory($file_path)
+                        ->thumbnail($width, $height)
+                        ->save($path.'/'.$name, 80);
+                }
+
+                return Text::reduce_slashes($dir.$name);
+            }
+
+            return $file;
         }
     }
 

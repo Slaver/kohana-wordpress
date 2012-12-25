@@ -71,13 +71,26 @@ class Model_Comments extends Model_Database {
      */
     public function get_comment($comment_id = FALSE)
     {
-        if ($comment_id)
-        {
-            return DB::select()
+        if ($comment_id) {
+            $comment = DB::select()
                 ->from('comments')
                 ->and_where('comment_ID', '=', $comment_id)
                 ->limit(1)
                 ->execute()->current();
+
+            if ($comment['user_id'] > 0) {
+                $comment['user'] = DB::select()->from('users')
+                    ->where('ID', '=', $comment['user_id'])
+                    ->execute()->as_array('ID');
+                $usermeta = DB::select()->from('usermeta')
+                    ->where('user_id', '=', $comment['user_id'])
+                    ->execute()->as_array();
+                foreach ($usermeta as $meta) {
+                    $comment['user'][$meta['meta_key']] = $meta['meta_value'];
+                }
+            }
+
+            return $comment;
         }
     }
 
@@ -147,7 +160,7 @@ class Model_Comments extends Model_Database {
     }
 
     /**
-     * Get one comment
+     * Update one comment
      *
      * @param  numeric $comment_id
      * @param  array   $input
@@ -158,7 +171,7 @@ class Model_Comments extends Model_Database {
         if ($comment_id !== FALSE)
         {
             return DB::update('comments')
-                ->set(array('comment_content' => $input['message']))
+                ->set(array('comment_content' => $input['comment_content']))
                 ->where('comment_ID', '=', $comment_id)
                 ->execute();
         }
@@ -181,12 +194,52 @@ class Model_Comments extends Model_Database {
                 ->execute()
                 ->get('comment_post_ID');
 
-            DB::delete('comments')->and_where('comment_ID', '=', $comment_id);
-            DB::delete('commentmeta')->and_where('comment_ID', '=', $comment_id);
+            DB::update('comments')
+                ->set(array('comment_approved' => 'trash'))
+                ->where('comment_ID', '=', $comment_id)
+                ->execute();
 
             return DB::update('posts')
                 ->set(array('comment_count' => DB::expr('comment_count - 1')))
                 ->where('ID', '=', $post_id)
+                ->execute();
+        }
+    }
+
+    /**
+     * Check first comment
+     *
+     * @param  numeric $comment_id
+     * @return boolean
+     */
+    public function check_comment($user)
+    {
+        if ( ! empty($user))
+        {
+            return DB::select()
+                ->from('comments')
+                ->and_where('comment_author_email', '=', Arr::get($user, 'user_email'))
+                ->and_where('comment_approved', '=', '1')
+                ->limit(1)
+                ->execute()
+                ->current();
+        }
+    }
+
+    /**
+     * Update one comment
+     *
+     * @param  numeric $comment_id
+     * @param  array   $input
+     * @return boolean
+     */
+    public function approve_comment($comment_id = FALSE, $approve = TRUE)
+    {
+        if ($comment_id !== FALSE)
+        {
+            return DB::update('comments')
+                ->set(array('comment_approved' => $approve))
+                ->where('comment_ID', '=', $comment_id)
                 ->execute();
         }
     }

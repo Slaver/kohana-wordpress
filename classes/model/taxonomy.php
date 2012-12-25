@@ -31,12 +31,23 @@ class Model_Taxonomy extends Model_Database {
             ->where('tr.object_id', 'IN', $post_id)
             ->execute()->as_array();
 
-        foreach ($taxonomy as $id=>$value)
+        foreach ($taxonomy as $value)
         {
             $link = html::anchor('/'.$value['taxonomy'].'/'.$value['slug'], $value['name']);
             if ($value['taxonomy'] === 'post_tag')
             {
                 $link = html::anchor('/tag/'.$value['slug'], $value['name']);
+            }
+            if ($value['taxonomy'] === 'venue')
+            {
+                $link = html::anchor('/events/'.$value['slug'], $value['name']);
+                if ( ! empty($value['parent'])) {
+                    $parent_taxonomy = DB::select()
+                        ->from(array('terms', 't'))
+                        ->where('term_id', '=', $value['parent'])
+                        ->execute()->current();
+                    $link = html::anchor('/events/'.$parent_taxonomy['slug'].'/'.$value['slug'], $value['name']);
+                }
             }
 
             $return[$value['object_id']][$value['taxonomy']][] = array(
@@ -76,19 +87,20 @@ class Model_Taxonomy extends Model_Database {
      * @param  string $type
      * @return array
      */
-    public function get_term($id)
+    public function get_term($id, $type = FALSE)
     {
         if ( ! empty($id))
         {
             $query = DB::select()
                 ->from('terms');
 
-            if (is_numeric($id))
-            {
-                $query->where('term_id', '=', $id);
+            if ($type) {
+                $query->where('taxonomy', '=', $type);
             }
-            else
-            {
+
+            if (is_numeric($id)) {
+                $query->where('term_id', '=', $id);
+            } else {
                 $query->where('slug', '=', $id);
             }
 
